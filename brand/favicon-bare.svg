@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Gul">
+  <title>Gul</title>
+  <path d="M-5.2 0 C-8.8 -4.84 -8.8 -9.68 -7.74 -13.2 C-5.81 -16.72 -2.64 -19.36 0 -22 C2.64 -19.36 5.81 -16.72 7.74 -13.2 C8.8 -9.68 8.8 -4.84 5.2 0 Z" fill="#F2EDE3" transform="translate(32,32) rotate(0) translate(0,-5.6)"></path>
+  <path d="M-5.2 0 C-8.8 -4.84 -8.8 -9.68 -7.74 -13.2 C-5.81 -16.72 -2.64 -19.36 0 -22 C2.64 -19.36 5.81 -16.72 7.74 -13.2 C8.8 -9.68 8.8 -4.84 5.2 0 Z" fill="#F2EDE3" transform="translate(32,32) rotate(72) translate(0,-5.6)"></path>
+  <path d="M-5.2 0 C-8.8 -4.84 -8.8 -9.68 -7.74 -13.2 C-5.81 -16.72 -2.64 -19.36 0 -22 C2.64 -19.36 5.81 -16.72 7.74 -13.2 C8.8 -9.68 8.8 -4.84 5.2 0 Z" fill="#F2EDE3" transform="translate(32,32) rotate(144) translate(0,-5.6)"></path>
+  <path d="M-5.2 0 C-8.8 -4.84 -8.8 -9.68 -7.74 -13.2 C-5.81 -16.72 -2.64 -19.36 0 -22 C2.64 -19.36 5.81 -16.72 7.74 -13.2 C8.8 -9.68 8.8 -4.84 5.2 0 Z" fill="#F2EDE3" transform="translate(32,32) rotate(216) translate(0,-5.6)"></path>
+  <path d="M-5.2 0 C-8.8 -4.84 -8.8 -9.68 -7.74 -13.2 C-5.81 -16.72 -2.64 -19.36 0 -22 C2.64 -19.36 5.81 -16.72 7.74 -13.2 C8.8 -9.68 8.8 -4.84 5.2 0 Z" fill="#F2EDE3" transform="translate(32,32) rotate(288) translate(0,-5.6)"></path>
+  <circle cx="32" cy="32" r="8.6" fill="#E9B366"></circle>
+</svg>

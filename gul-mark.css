@@ -1,0 +1,17 @@
+/* Gul — motion tokens for anything drawing the mark outside the component. */
+:root {
+  --gul-ease:  cubic-bezier(.22, 1, .36, 1);
+  --gul-solar: 600ms;   /* LINEAR. The sun never eases. */
+  --gul-petal: 760ms;   /* Eased. Answers a person. */
+  --gul-stagger: 200ms; /* Between petals in the splash. */
+  --gul-dome: 1600ms;
+}
+
+@keyframes gul-petal-open {
+  from { opacity: .4; }
+  to   { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --gul-petal: 1ms; --gul-stagger: 0ms; --gul-dome: 1ms; }
+}
