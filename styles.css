@@ -238,12 +238,20 @@ html, body, button, a, .pill, .tt-row, .m-cell { touch-action: manipulation; }
 .aperture-frame { cursor: grab; touch-action: none; }
 .aperture-frame.scrubbing { cursor: grabbing; }
 .aperture-frame.scrubbing .ap-layer { transition: none; }
+/* It is a button, so it arrives with the browser's grey chrome and black
+   text. Reset that explicitly — without it the label sat pale gold on a
+   near-white default background and could not be read. */
 .ap-scrub {
-  font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
-  color: var(--pn-faint); transition: color var(--pn-dur-tap) var(--pn-ease);
+  appearance: none; -webkit-appearance: none;
+  background: none; border: 0; padding: 4px 2px; margin: 0;
+  font: inherit; font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--pn-label); cursor: pointer;
+  transition: color var(--pn-dur-tap) var(--pn-ease);
 }
-.aperture-frame.scrubbing ~ .ap-readout .ap-scrub,
-.ap-scrub.away { color: var(--pn-sun-pale); }
+.ap-scrub:hover { color: var(--pn-ink-2); }
+/* Away from now, it is the one thing on screen asking to be pressed. */
+.ap-scrub.away { color: var(--pn-sun); }
+.ap-scrub.away:hover { color: var(--pn-sun-pale); }
 @media (prefers-reduced-motion: reduce) { .ap-layer { transition-duration: 1ms; } }
 
 /* ── Verse ───────────────────────────────────────────────────────── */

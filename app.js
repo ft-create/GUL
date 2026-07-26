@@ -711,9 +711,14 @@ function drawAuth() {
 
   if (u) {
     el.accountName.textContent = `✓ ${u.email}`;
+    /* An unverified address is worth saying out loud once, because the day
+       it matters is the day they need a password reset and the mail has
+       nowhere to go. It never blocks anything — the notes sync either way. */
     el.accountMeta.textContent = Sync.lastError
       ? 'Signed in, but the database refused the sync — the Gul security rules need to be added in the Firebase console (see firestore.rules). Your notes are safe here meanwhile.'
-      : 'Signed in — your notes and settings sync to the cloud and across your devices.';
+      : u.emailVerified === false
+        ? 'Signed in and syncing. We sent a note to this address to confirm it — worth confirming, so you can reset your password later if you ever need to.'
+        : 'Signed in — your notes and settings sync to the cloud and across your devices.';
     el.accountAction.textContent = 'Sign out';
     el.accountAction.onclick = () => Sync.signOut();
     el.syncLine.textContent = Sync.lastError ? 'Sync blocked — notes staying local' : 'Synced — your notes are safe in the cloud';
@@ -764,10 +769,16 @@ async function doAuth(mode) {
   el.authError.textContent = '';
   if (!Sync._fb) { el.authError.textContent = 'The cloud could not be reached from here.'; return; }
   try {
-    if (mode === 'in') await Sync.signIn(email, pass);
-    else await Sync.signUp(email, pass);
-    closeAuth();
+    if (mode === 'in') { await Sync.signIn(email, pass); closeAuth(); return; }
+    await Sync.signUp(email, pass);
+    /* The account is live and already syncing. Hold the card open for a
+       breath so the person knows an email is on its way, rather than
+       wondering later why one arrived. */
+    el.authError.style.color = 'var(--pn-noted)';
+    el.authError.textContent = 'Account created — check your inbox to confirm your address.';
+    setTimeout(() => { el.authError.style.color = ''; closeAuth(); }, 2600);
   } catch (e) {
+    el.authError.style.color = '';
     el.authError.textContent = authError(e);
   }
 }

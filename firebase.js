@@ -107,10 +107,29 @@ export const Sync = {
     const { auth: a, authMod } = this._fb;
     return authMod.signInWithEmailAndPassword(a, email, password);
   },
+  /* A new account gets a verification mail immediately. It is not a gate —
+     the app works and syncs straight away — it is so that a typo'd address
+     is caught while the person is still sitting there, instead of at the
+     moment they need a password reset and cannot receive one. If the mail
+     fails to send, the account is still good; we do not fail the sign-up
+     over it. */
   async signUp(email, password) {
     const { auth: a, authMod } = this._fb;
-    return authMod.createUserWithEmailAndPassword(a, email, password);
+    const cred = await authMod.createUserWithEmailAndPassword(a, email, password);
+    try { await authMod.sendEmailVerification(cred.user); } catch (e) {
+      console.warn('Gul: verification mail did not send', e);
+    }
+    return cred;
   },
+
+  /* Offered again from the account panel, because the first mail is the one
+     most likely to end up in spam. */
+  async resendVerification() {
+    const { authMod } = this._fb;
+    if (!this.user) throw new Error('not signed in');
+    return authMod.sendEmailVerification(this.user);
+  },
+  get verified() { return !!this.user && this.user.emailVerified !== false; },
   async resetPassword(email) {
     const { auth: a, authMod } = this._fb;
     return authMod.sendPasswordResetEmail(a, email);
