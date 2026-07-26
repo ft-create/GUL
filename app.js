@@ -758,7 +758,14 @@ function authError(e) {
     'auth/email-already-in-use': 'That email already has an account — sign in instead.',
     'auth/weak-password': 'Password needs at least 6 characters.',
     'auth/network-request-failed': 'No connection — the app still works locally.',
-    'auth/operation-not-allowed': 'Email sign-in is not enabled yet in the Firebase console.',
+    'auth/operation-not-allowed': 'That sign-in method is not enabled yet in the Firebase console.',
+    /* Both of these are console settings, not bugs, and both are invisible
+       until someone actually presses the Google button — so name the fix
+       instead of saying "something went wrong". */
+    'auth/unauthorized-domain': 'Google sign-in is not allowed from this address yet — add it under Firebase → Authentication → Settings → Authorized domains.',
+    'auth/popup-closed-by-user': '',
+    'auth/cancelled-popup-request': '',
+    'auth/account-exists-with-different-credential': 'That address already has a password account here. Sign in with the email and password instead.',
   };
   return map[e?.code] || e?.message || 'Something went wrong.';
 }
@@ -784,6 +791,13 @@ async function doAuth(mode) {
 }
 $('auth-signin').addEventListener('click', () => doAuth('in'));
 $('auth-signup').addEventListener('click', () => doAuth('up'));
+$('auth-google').addEventListener('click', async () => {
+  el.authError.style.color = '';
+  el.authError.textContent = '';
+  if (!Sync._fb) { el.authError.textContent = 'The cloud could not be reached from here.'; return; }
+  try { await Sync.signInWithGoogle(); closeAuth(); }
+  catch (e) { el.authError.textContent = authError(e); }
+});
 el.authPass.addEventListener('keydown', e => { if (e.key === 'Enter') doAuth('in'); });
 $('auth-reset').addEventListener('click', async () => {
   const email = el.authEmail.value.trim();

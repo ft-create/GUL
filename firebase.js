@@ -48,6 +48,10 @@ export const Sync = {
       const a = auth.getAuth(app);
       const db = fs.getFirestore(app);
       this._fb = { auth: a, db, fs, authMod: auth };
+      /* A Google sign-in that had to fall back to a full-page redirect
+         finishes here, on the way back in. Failures are not worth
+         surfacing — onAuthStateChanged is the source of truth either way. */
+      auth.getRedirectResult(a).catch(() => {});
       auth.onAuthStateChanged(a, u => this._setUser(u));
     } catch (e) {
       console.warn('Gul: cloud unavailable, staying local.', e);
@@ -106,6 +110,28 @@ export const Sync = {
   async signIn(email, password) {
     const { auth: a, authMod } = this._fb;
     return authMod.signInWithEmailAndPassword(a, email, password);
+  },
+
+  /* Google is one tap and arrives already verified, which is why it is the
+     first thing on the card. Two things must be true in the Firebase
+     console or this throws: the Google provider has to be enabled, and the
+     site's domain has to be in Auth → Settings → Authorized domains. The
+     error codes for both are mapped in app.js so the card says which. */
+  async signInWithGoogle() {
+    const { auth: a, authMod } = this._fb;
+    const provider = new authMod.GoogleAuthProvider();
+    /* Always ask which account. A shared laptop should not silently sign
+       someone into the last person's garden. */
+    provider.setCustomParameters({ prompt: 'select_account' });
+    try {
+      return await authMod.signInWithPopup(a, provider);
+    } catch (e) {
+      /* Popups die in in-app browsers and some mobile Safari settings. The
+         redirect always works; it just leaves the page and comes back. */
+      const fallback = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment'];
+      if (fallback.includes(e?.code)) return authMod.signInWithRedirect(a, provider);
+      throw e;
+    }
   },
   /* A new account gets a verification mail immediately. It is not a gate —
      the app works and syncs straight away — it is so that a typo'd address

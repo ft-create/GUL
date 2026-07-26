@@ -21,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Amiri:wght@400&display=swap">
-<link rel="stylesheet" href="./styles.css?v=10">
+<link rel="stylesheet" href="./styles.css?v=11">
 <style>.auth-overlay[hidden]{display:none}</style>
 
 <script>
@@ -91,7 +91,7 @@
       <button class="primary" id="mark-now" type="button">—</button>
       <div class="pills" id="pills"></div>
 
-      <p class="quiet">A private reflection, not a score. Each prayer you note opens a petal. Nothing dims because of a prayer you did not mark.</p>
+      <p class="quiet">Each prayer you note opens a petal. Tap the button above, or any of the five.</p>
       <p class="sync-line" id="sync-line"></p>
       <p class="notice" id="polar-note" hidden>This place is in polar day or night today, so times are shown for the nearest workable latitude — not the literal sky above you.</p>
       <p class="notice" id="adjusted-note" hidden>Twilight does not reach the chosen angle here today; Fajr and Isha are estimated by the high-latitude rule in Settings.</p>
@@ -133,7 +133,7 @@
       <div class="sheet-sub" id="tt-date">—</div>
     </div>
     <div class="rows" id="tt-rows"></div>
-    <p class="quiet">These are your own notes. Gul cannot verify a prayer and does not treat this as a record of worship performed.</p>
+    <p class="quiet">These are your own notes — Gul knows where the sun is, not whether you prayed, so what you mark is yours to enter.</p>
   </section>
 
   <!-- ── History ───────────────────────────────────────────────────── -->
@@ -144,7 +144,7 @@
     </div>
     <div class="info-card">
       <span class="i-dot">i</span>
-      <span>Each day is the flower you grew that day. There are no perfect days here and no failed ones.</span>
+      <span>Each day is the flower you grew that day.</span>
     </div>
     <div class="month-bar">
       <div class="month-title" id="month-title">—</div>
@@ -154,7 +154,7 @@
       </div>
     </div>
     <div class="month-grid" id="month-grid"></div>
-    <p class="quiet">A day with four petals is a day you noted four prayers. Nothing is added up, ranked, or compared — the calendar is the record and the record is the reward.</p>
+    <p class="quiet">A day with four petals is a day you noted four prayers.</p>
   </section>
 
   <!-- ── Settings ──────────────────────────────────────────────────── -->
@@ -228,7 +228,19 @@
       <p>“Successful indeed are the believers … and those who guard their prayers. It is they who will inherit Firdaus — there they will remain forever.”</p>
       <cite>Qur'an 23:1, 9–11</cite>
     </blockquote>
-    <p class="auth-sub">An account keeps your notes safe and shows the same flower on every device. Email and a password is all it takes.</p>
+    <!-- No longer "email and a password is all it takes" — Google is above it. -->
+    <p class="auth-sub">An account keeps your notes safe and shows the same flower on every device.</p>
+    <!-- Google first: one tap, and the address arrives already verified. -->
+    <button class="auth-google" id="auth-google" type="button">
+      <svg width="17" height="17" viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#4285F4" d="M45.1 24.5c0-1.6-.1-2.8-.4-4H24v7.6h12c-.2 2-1.5 5-4.8 7l7.3 5.7c4.3-4 6.6-9.8 6.6-16.3z"/>
+        <path fill="#34A853" d="M24 46c5.9 0 10.8-1.9 14.5-5.2l-7.3-5.7c-2 1.4-4.6 2.3-7.2 2.3-5.7 0-10.5-3.7-12.2-8.9l-7.5 5.8C8 41.5 15.4 46 24 46z"/>
+        <path fill="#FBBC05" d="M11.8 28.5A13.5 13.5 0 0 1 11.1 24c0-1.6.3-3.1.7-4.5l-7.5-5.8A22 22 0 0 0 2 24c0 3.6.9 6.9 2.3 10.3z"/>
+        <path fill="#EA4335" d="M24 10.3c4 0 6.8 1.7 8.4 3.2l6.4-6.2C34.8 3.7 29.9 2 24 2 15.4 2 8 6.5 4.3 13.7l7.5 5.8C13.5 14.2 18.3 10.3 24 10.3z"/>
+      </svg>
+      <span>Continue with Google</span>
+    </button>
+    <div class="auth-or"><span>or use an email</span></div>
     <input class="auth-input" id="auth-email" type="email" autocomplete="email" placeholder="Email">
     <input class="auth-input" id="auth-pass" type="password" autocomplete="current-password" placeholder="Password (6+ characters)">
     <div class="auth-error" id="auth-error"></div>
@@ -239,6 +251,6 @@
   </div>
 </div>
 
-<script type="module" src="./app.js?v=10"></script>
+<script type="module" src="./app.js?v=11"></script>
 </body>
 </html>

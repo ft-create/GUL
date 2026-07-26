@@ -487,6 +487,27 @@ html, body, button, a, .pill, .tt-row, .m-cell { touch-action: manipulation; }
   font-style: normal; font-size: 10px; letter-spacing: .22em;
   text-transform: uppercase; color: var(--pn-label);
 }
+.auth-google {
+  display: flex; align-items: center; justify-content: center; gap: 11px;
+  min-height: 48px; padding: 13px 18px; border-radius: var(--pn-r-pill);
+  border: 1px solid #2A3630; background: rgba(242,237,227,.04);
+  color: var(--pn-ink); font: inherit; font-size: 14.5px; cursor: pointer;
+  transition: background var(--pn-dur-tap) var(--pn-ease),
+              border-color var(--pn-dur-tap) var(--pn-ease);
+}
+.auth-google:hover { background: rgba(242,237,227,.09); border-color: var(--pn-line-2, #3A4A42); }
+.auth-google svg { flex: 0 0 auto; }
+/* A hairline with the word sitting in it — cheaper than two rules and a
+   background, and it survives the card being any width. */
+.auth-or {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--pn-faint); margin: 2px 0;
+}
+.auth-or::before, .auth-or::after {
+  content: ""; flex: 1; height: 1px; background: var(--pn-line-soft);
+}
+
 .auth-input {
   padding: 13px 16px; min-height: 48px; border-radius: 14px;
   border: 1px solid #2A3630; background: #0E1513; color: var(--pn-ink-2);
