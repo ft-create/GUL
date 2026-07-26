@@ -26,6 +26,28 @@
     font-family:var(--ui);font-size:15px;line-height:1.7;
     -webkit-font-smoothing:antialiased;
   }
+  /* ── The blueprint grid — FT house furniture ──────────────────────────
+     Every FT experiment stands on the same 40px grid. It is the thing
+     that makes Ironcade and Gul read as one studio while their palettes
+     stay entirely their own, so it is deliberately written as two lines
+     of CSS and two variables rather than an asset — copy this block into
+     the next project and only change --grid to suit its ink.
+
+     Fixed, so it never scrolls with the page; z-index 0 and
+     pointer-events:none, so it sits under everything and catches
+     nothing. Content is lifted to z-index 1 below. */
+  :root{ --grid:rgba(242,237,227,.035); --grid-size:40px }
+  body::before{
+    content:"";position:fixed;inset:0;z-index:0;pointer-events:none;
+    background-image:
+      linear-gradient(var(--grid) 1px,transparent 1px),
+      linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:var(--grid-size) var(--grid-size);
+  }
+  body > header, body > main, body > section, body > footer, body > .rail{
+    position:relative;z-index:1;
+  }
+
   .wrap{max-width:1180px;margin:0 auto;padding:0 40px}
   @media(max-width:720px){ .wrap{padding:0 22px} }
 
@@ -177,6 +199,49 @@
   .rule .n{font-family:var(--display);font-size:26px;color:var(--faint);line-height:1}
   .rule strong{display:block;color:var(--cream);font-weight:500;margin-bottom:5px}
 
+  /* ── The motion law, running ──────────────────────────────────────── */
+  .lawdemo{
+    position:relative;margin-top:40px;height:306px;overflow:hidden;
+    border:1px solid var(--line);border-radius:16px;background:var(--shell);
+  }
+  .lawsky{position:absolute;left:0;right:0;top:0;height:180px;transition:background 600ms linear}
+  .lawarc{position:absolute;left:0;top:0;width:100%;height:180px;overflow:visible}
+  /* Nine evenly spaced marks. The sun meets them at nine evenly spaced
+     moments — that is the whole proof, and it only works if the ticks
+     are spaced by the same rule the sun's x uses. */
+  .lawticks{
+    position:absolute;left:0;right:0;top:180px;height:10px;
+    display:flex;justify-content:space-between;padding:0 40px;
+  }
+  .lawticks i{width:1px;height:9px;background:rgba(242,237,227,.20);display:block}
+  .lawsun{
+    position:absolute;width:26px;height:26px;border-radius:50%;margin:-13px 0 0 -13px;
+    background:radial-gradient(circle at 50% 42%,#FFF7E6,var(--sun) 58%,rgba(233,179,102,0) 78%);
+  }
+  .lawrow{
+    position:absolute;left:40px;right:40px;display:flex;align-items:center;gap:16px;
+  }
+  .lawrow.r1{top:214px} .lawrow.r2{top:246px}
+  .lawkey{
+    flex:0 0 112px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--label);
+  }
+  .lawtrack{position:relative;flex:1;height:1px;background:var(--line-2)}
+  .lawdot{position:absolute;top:-4px;width:9px;height:9px;border-radius:50%;margin-left:-4.5px}
+  .lawdot.sun{background:var(--sun)}
+  .lawdot.petal{background:var(--cream)}
+  .lawclock{
+    position:absolute;left:40px;right:40px;top:276px;
+    font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);
+  }
+  @media(max-width:720px){
+    .lawrow{left:22px;right:22px} .lawclock{left:22px;right:22px}
+    .lawkey{flex-basis:0;display:none}
+    .lawticks{padding:0 22px}
+  }
+  /* The law applies to itself: if a person has asked for less motion, the
+     demo stops moving and holds one honest frame rather than looping. */
+  @media(prefers-reduced-motion:reduce){ .lawsky{transition-duration:1ms} }
+
   .motion{
     display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);
     border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-top:40px;
@@ -266,6 +331,12 @@
     <p class="eyebrow"><span class="num">01</span> / The mark</p>
     <h2>Five domes radiating from the sun. The petal is not like a dome — it is the dome.</h2>
     <p>
+      <strong style="color:var(--cream);font-weight:500">Gul</strong> is Persian and Urdu for
+      <em>flower</em> — and, said on its own, the rose. The name is already the mark: five
+      petals, one sun at the centre, five prayers in a day. Nothing had to be invented to get
+      from the word to the drawing.
+    </p>
+    <p>
       The dome silhouette, stretched: flat base, haunches swelling past the base, a point at the
       top. Each dome belongs to one named prayer and is fixed to its position — Fajr at the top,
       then clockwise — so the shape of a day is legible at a glance. A prayer you have noted is
@@ -343,8 +414,8 @@
     <h2>The sun is the palette. Everything else is a small fixed set.</h2>
 
     <p>
-      <strong style="color:var(--cream);font-weight:500">Gul</strong> is the rose. The
-      Qur'an's reward for those who guard their prayers is a garden — Gul is what grows in it.
+      <strong style="color:var(--cream);font-weight:500">Gul</strong> is the flower — the rose.
+      The Qur'an's reward for those who guard their prayers is a garden; Gul is what grows in it.
       Deliberately not a crescent: the crescent-and-star is the most-used mark in this category
       and is Ottoman heraldry rather than anything scriptural, so reaching for it buys
       recognition and spends distinctiveness in the same move.
@@ -410,6 +481,35 @@
       collapses every transition to 1ms; the state still changes, it simply arrives instead of
       travelling.
     </p>
+
+    <!-- ── The law, running ────────────────────────────────────────────
+         Two dots crossing the same distance in the same time. The upper
+         one is the sun: constant speed, so it crosses the evenly spaced
+         ticks at evenly spaced moments — you can count it. The lower one
+         is a petal on cubic-bezier(.22,1,.36,1): it leaves late, arrives
+         early, and never lines up with a tick. Nothing here is described;
+         it is the same two curves the app ships, drawn at a speed a
+         person can watch. -->
+    <div class="lawdemo" id="lawdemo">
+      <div class="lawsky" id="lawsky"></div>
+      <!-- The path is drawn from the same sine the disc flies, in script —
+           an approximated arc would be decoration, and decoration is the
+           one thing this section forbids. -->
+      <svg class="lawarc" preserveAspectRatio="none" aria-hidden="true">
+        <polyline id="lawpath" fill="none" stroke="rgba(242,237,227,.12)" stroke-width="1"/>
+      </svg>
+      <div class="lawticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <div class="lawsun" id="lawsun"></div>
+      <div class="lawrow r1">
+        <span class="lawkey">Sun · linear</span>
+        <div class="lawtrack"><span class="lawdot sun" id="lawdot-sun"></span></div>
+      </div>
+      <div class="lawrow r2">
+        <span class="lawkey">Petal · eased</span>
+        <div class="lawtrack"><span class="lawdot petal" id="lawdot-petal"></span></div>
+      </div>
+      <div class="lawclock" id="lawclock">—</div>
+    </div>
 
     <div class="motion">
       <div><b>600ms</b><span>The sun — LINEAR. Radius, colour, glow. Never eases, never waits.</span></div>
@@ -606,6 +706,111 @@
   addEventListener('scroll', onScroll, { passive: true });
   addEventListener('resize', onScroll);
   paint(0);
+})();
+
+/* ── 03 / the motion law, running ──────────────────────────────────────
+   One loop is one day, compressed to 18 seconds. The sun's progress
+   through it is the raw fraction of the loop — no easing anywhere in the
+   path, which is why it meets the nine ticks at nine evenly spaced
+   moments. The petal dot below runs the app's real curve,
+   cubic-bezier(.22,1,.36,1), over the identical interval: it leaves
+   late, overtakes, and arrives early. Watching them disagree is the
+   whole argument for keeping the two families apart.
+
+   It only runs while it is on screen, and it does not run at all for a
+   person who has asked for reduced motion — a design brief that ignores
+   its own accessibility rule is not making its case. */
+(function motionLaw() {
+  var demo = document.getElementById('lawdemo');
+  if (!demo) return;
+  var sky   = document.getElementById('lawsky');
+  var sun   = document.getElementById('lawsun');
+  var dS    = document.getElementById('lawdot-sun');
+  var dP    = document.getElementById('lawdot-petal');
+  var clock = document.getElementById('lawclock');
+
+  var LOOP = 18000;                 /* one day */
+  var RISE = 0.20, SET = 0.76;      /* the same day the bloom rail uses */
+
+  /* cubic-bezier(.22,1,.36,1) solved by bisection — close enough at
+     screen resolution, and it keeps the file dependency-free. */
+  function bez(t) {
+    function cx(u) { var v = 1 - u; return 3*v*v*u*0.22 + 3*v*u*u*0.36 + u*u*u; }
+    function cy(u) { var v = 1 - u; return 3*v*v*u*1.00 + 3*v*u*u*1.00 + u*u*u; }
+    var lo = 0, hi = 1, mid;
+    for (var i = 0; i < 24; i++) { mid = (lo + hi) / 2; if (cx(mid) < t) lo = mid; else hi = mid; }
+    return cy((lo + hi) / 2);
+  }
+
+  function skyFor(alt, up) {
+    if (alt > 26) return 'linear-gradient(180deg,#4E82AC,#9FBFD4 52%,#E4D6BE)';
+    if (alt > 8)  return 'linear-gradient(180deg,#5F82A6,#BCAE96 58%,#E9BE87)';
+    if (alt > 0)  return up ? 'linear-gradient(180deg,#2C3856,#AE6741 60%,#E9B366)'
+                            : 'linear-gradient(180deg,#2A2C4C,#9E4E3F 58%,#DE8B52)';
+    if (alt > -11) return 'linear-gradient(180deg,#0D1424,#312848 54%,#66313A)';
+    return 'linear-gradient(180deg,#04070E,#091120 60%,#0F1A26)';
+  }
+
+  function hhmm(p) {
+    var m = Math.round(p * 1440) % 1440;
+    var h = Math.floor(m / 60), mm = String(m % 60).padStart(2, '0');
+    var ap = h < 12 ? 'am' : 'pm', h12 = h % 12 === 0 ? 12 : h % 12;
+    return h12 + ':' + mm + ' ' + ap;
+  }
+
+  /* x and y for a given fraction of the day. One function, used by both
+     the flying disc and the path it flies — so they cannot drift apart. */
+  var H = 180;   /* must match .lawsky height */
+  function xAt(p, w) { return 40 + (w - 80) * p; }
+  function yAt(alt)  { return H - 10 - Math.max(0, alt) / 64 * (H - 46); }
+  function altAt(p)  { return 64 * Math.sin(Math.PI * (p - RISE) / (SET - RISE)); }
+
+  var path = document.getElementById('lawpath');
+  function drawPath() {
+    var w = demo.clientWidth, pts = [];
+    for (var i = 0; i <= 120; i++) {
+      var p = RISE + (SET - RISE) * (i / 120);
+      pts.push(xAt(p, w).toFixed(1) + ',' + yAt(altAt(p)).toFixed(1));
+    }
+    path.setAttribute('points', pts.join(' '));
+  }
+  drawPath();
+  addEventListener('resize', drawPath);
+
+  var lastSky = '';
+  function frame(now) {
+    var p = (now % LOOP) / LOOP;                       /* linear. always. */
+    var w = demo.clientWidth;
+    var alt = altAt(p);
+    var up  = p < (RISE + SET) / 2;
+
+    var s = skyFor(alt, up);
+    if (s !== lastSky) { sky.style.background = s; lastSky = s; }
+
+    sun.style.left = xAt(p, w) + 'px';
+    sun.style.top  = yAt(alt) + 'px';
+    sun.style.opacity = alt > -4 ? 1 : Math.max(0, (alt + 14) / 10);
+
+    dS.style.left = (p * 100) + '%';
+    dP.style.left = (bez(p) * 100) + '%';
+    clock.textContent = hhmm(p) + ' · ' + (alt > 0 ? '+' : '') + alt.toFixed(1) + '° · sun and petal, same clock';
+
+    raf = requestAnimationFrame(frame);
+  }
+
+  var raf = null;
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  function start() { if (raf === null && !reduce.matches) raf = requestAnimationFrame(frame); }
+  function stop()  { if (raf !== null) { cancelAnimationFrame(raf); raf = null; } }
+
+  if (reduce.matches) { frame(LOOP * 0.42); stop(); }   /* one honest midday frame */
+
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (es) {
+      es[0].isIntersecting ? start() : stop();
+    }, { threshold: 0.15 }).observe(demo);
+  } else { start(); }
+  document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
 })();
 </script>
 </body>
