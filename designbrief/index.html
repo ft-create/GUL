@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GUL — FT Experiment</title>
+<meta name="description" content="GUL (گُل) — a prayer app whose palette is the sky. Design brief: identity, the sun ramp, the rosette, and the product path.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;700&family=Amiri&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#05080A; --shell:#0A0F0E; --card:#0E1513; --line:#1C2723; --line-2:#2A3630;
+    --cream:#F2EDE3; --paper:#F7F3EA; --prose:#C9C6BE; --muted:#8E8B82;
+    --label:#6E7B74; --faint:#4E5E58;
+    --noted:#7CD9A6; --earth:#4A3A31; --sun:#E9B366; --moon:#E6ECF2;
+    --display:'Instrument Serif',Georgia,serif;
+    --ui:'DM Sans',system-ui,sans-serif;
+    --arabic:'Amiri',serif;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;background:var(--ink);color:var(--prose);
+    font-family:var(--ui);font-size:15px;line-height:1.7;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 40px}
+  @media(max-width:720px){ .wrap{padding:0 22px} }
+
+  /* ── Chrome ─────────────────────────────────────────────── */
+  header{
+    position:sticky;top:0;z-index:10;background:rgba(5,8,10,.86);
+    backdrop-filter:blur(14px);border-bottom:1px solid var(--line);
+  }
+  header .wrap{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand,.back{
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--label);text-decoration:none;
+  }
+  .back:hover,.brand:hover{color:var(--cream)}
+
+  /* ── Hero ───────────────────────────────────────────────── */
+  .hero{padding:96px 0 72px;border-bottom:1px solid var(--line)}
+  .eyebrow{
+    font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--label);margin:0 0 34px;
+  }
+  .eyebrow .num{color:var(--muted)}
+  .lockup{display:flex;align-items:center;gap:26px;flex-wrap:wrap}
+  .word{
+    font-family:var(--display);font-size:clamp(64px,11vw,120px);line-height:.9;
+    letter-spacing:.06em;color:var(--paper);margin:0;
+  }
+  .arabic{font-family:var(--arabic);font-size:44px;color:var(--sun);line-height:1}
+  .tag{
+    font-size:12px;letter-spacing:.34em;text-transform:uppercase;
+    color:var(--sun);margin:22px 0 0;
+  }
+  .lede{
+    font-size:19px;line-height:1.65;color:var(--prose);
+    max-width:640px;margin:30px 0 0;
+  }
+  .actions{display:flex;gap:14px;flex-wrap:wrap;margin-top:34px}
+  .btn{
+    display:inline-flex;align-items:center;gap:9px;border-radius:999px;
+    padding:13px 26px;font-size:14px;font-weight:500;text-decoration:none;
+    border:1px solid var(--line-2);color:var(--cream);
+  }
+  .btn.solid{background:var(--paper);color:var(--ink);border-color:var(--paper)}
+  .btn:hover{border-color:var(--cream)}
+
+  /* ── Case file ──────────────────────────────────────────── */
+  .casefile{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:1px;
+    background:var(--line);border:1px solid var(--line);border-radius:16px;
+    overflow:hidden;margin:52px 0 0;
+  }
+  .casefile div{background:var(--shell);padding:20px 22px}
+  .casefile dt{
+    font-size:10px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--label);margin:0 0 7px;
+  }
+  .casefile dd{margin:0;color:var(--cream);font-size:14px;line-height:1.45}
+  @media(max-width:820px){ .casefile{grid-template-columns:repeat(2,1fr)} }
+
+  /* ── Sections ───────────────────────────────────────────── */
+  section{padding:82px 0;border-bottom:1px solid var(--line)}
+  h2{
+    font-family:var(--display);font-weight:400;
+    font-size:clamp(30px,4.2vw,46px);line-height:1.12;
+    color:var(--paper);margin:0 0 22px;max-width:19ch;
+  }
+  h3{
+    font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--label);margin:0 0 9px;font-weight:500;
+  }
+  p{margin:0 0 18px;max-width:66ch}
+  .cols{display:grid;grid-template-columns:repeat(2,1fr);gap:44px;margin-top:44px}
+  .cols.three{grid-template-columns:repeat(3,1fr)}
+  @media(max-width:820px){ .cols,.cols.three{grid-template-columns:1fr;gap:32px} }
+  .cols p{margin:0}
+  .cols>div>p{margin:0}
+
+  /* ── The mark ───────────────────────────────────────────── */
+  .markrow{
+    display:flex;align-items:center;justify-content:center;gap:56px;flex-wrap:wrap;
+    background:var(--shell);border:1px solid var(--line);border-radius:24px;
+    padding:56px 40px;margin:0 0 12px;
+  }
+  .caption{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+
+  /* ── Palette ────────────────────────────────────────────── */
+  .ramp{display:flex;border-radius:12px;overflow:hidden;margin:26px 0 10px;height:64px}
+  .ramp i{flex:1}
+  .swatches{display:flex;flex-wrap:wrap;gap:10px;margin:26px 0 0}
+  .sw{
+    display:flex;align-items:center;gap:10px;border:1px solid var(--line);
+    border-radius:999px;padding:7px 15px 7px 8px;
+  }
+  .sw b{width:16px;height:16px;border-radius:50%;display:block}
+  .sw span{font-size:11px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+
+  /* ── Principles ─────────────────────────────────────────── */
+  .rule{
+    display:grid;grid-template-columns:46px 1fr;gap:20px;align-items:start;
+    padding:22px 0;border-top:1px solid var(--line);
+  }
+  .rule .n{font-family:var(--display);font-size:26px;color:var(--faint);line-height:1}
+  .rule strong{display:block;color:var(--cream);font-weight:500;margin-bottom:5px}
+
+  /* ── Path ───────────────────────────────────────────────── */
+  .status{
+    border:1px solid var(--line-2);border-radius:20px;background:var(--card);
+    padding:26px 28px;margin-top:40px;
+  }
+  .status p{margin:0;color:var(--cream)}
+
+  footer{padding:44px 0 66px}
+  .colophon{
+    font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <span class="brand">Dr. Fareed Tareen, DDS</span>
+    <a class="back" href="https://experiment.fareedtareen.com/">← All experiments</a>
+  </div>
+</header>
+
+<!-- ── HERO ──────────────────────────────────────────────── -->
+<div class="hero">
+  <div class="wrap">
+    <p class="eyebrow">FT—EXP—02 &nbsp;/&nbsp; Web preview</p>
+
+    <div class="lockup">
+      <h1 class="word">GUL</h1>
+      <span class="arabic">گُل</span>
+    </div>
+    <p class="tag">Pray with the sun</p>
+
+    <p class="lede">
+      A prayer app whose palette is the sky. Five prayers, five petals, and a sun at the
+      centre whose colour is computed from its real altitude rather than chosen — so the
+      interface changes with the day, and the mark is a working instrument rather than a logo.
+    </p>
+
+    <div class="actions">
+      <a class="btn solid" href="../">Open the preview ↗</a>
+      <a class="btn" href="#brief">Read design brief ↓</a>
+    </div>
+
+    <dl class="casefile">
+      <div><dt>Reference</dt><dd>FT—EXP—02</dd></div>
+      <div><dt>Discipline</dt><dd>Product + brand system</dd></div>
+      <div><dt>Format</dt><dd>Expo / React&nbsp;Native — iOS, Android, web</dd></div>
+      <div><dt>Status</dt><dd>Web preview live</dd></div>
+    </dl>
+  </div>
+</div>
+
+<!-- ── 01 / THE MARK ─────────────────────────────────────── -->
+<section>
+  <div class="wrap">
+    <p class="eyebrow"><span class="num">01</span> / The mark</p>
+    <h2>The logo is the mechanic, not a metaphor for it.</h2>
+    <p>
+      A dome, five petals inside it, and the sun at the centre where the petals meet. Each
+      petal belongs to one named prayer and is fixed to its position — Fajr at the top, then
+      clockwise — so the shape of a day is legible at a glance. A prayer you have noted is a
+      petal filled cream; one you have not is the <em>same petal, outlined</em>. Never smaller,
+      never wilted, never red.
+    </p>
+
+    <div class="markrow">
+      <svg viewBox="0 0 64 64" width="150" height="150" role="img" aria-label="GUL — five petals noted">
+        <path d="M-19 24.75 C-27 12.75 -24 -3.25 -12 -13.25 C-7 -17.25 -3 -20.25 0 -24.75 C3 -20.25 7 -17.25 12 -13.25 C24 -3.25 27 12.75 19 24.75 Z" transform="translate(32,32)" fill="none" stroke="#F2EDE3" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="#F2EDE3" transform="translate(32,32) rotate(0) scale(.84)"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="#F2EDE3" transform="translate(32,32) rotate(72) scale(.84)"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="#F2EDE3" transform="translate(32,32) rotate(144) scale(.84)"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="#F2EDE3" transform="translate(32,32) rotate(216) scale(.84)"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="#F2EDE3" transform="translate(32,32) rotate(288) scale(.84)"/>
+        <circle cx="32" cy="32" r="9.8" fill="#E9B366"/>
+      </svg>
+
+      <svg viewBox="0 0 64 64" width="150" height="150" role="img" aria-label="GUL — one prayer noted">
+        <path d="M-19 24.75 C-27 12.75 -24 -3.25 -12 -13.25 C-7 -17.25 -3 -20.25 0 -24.75 C3 -20.25 7 -17.25 12 -13.25 C24 -3.25 27 12.75 19 24.75 Z" transform="translate(32,32)" fill="none" stroke="#F2EDE3" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="#F2EDE3" transform="translate(32,32) rotate(0) scale(.84)"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="none" stroke="#F2EDE3" stroke-width="1.1" opacity=".42" transform="translate(32,32) rotate(72) scale(.84)"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="none" stroke="#F2EDE3" stroke-width="1.1" opacity=".42" transform="translate(32,32) rotate(144) scale(.84)"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="none" stroke="#F2EDE3" stroke-width="1.1" opacity=".42" transform="translate(32,32) rotate(216) scale(.84)"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="none" stroke="#F2EDE3" stroke-width="1.1" opacity=".42" transform="translate(32,32) rotate(288) scale(.84)"/>
+        <circle cx="32" cy="32" r="9.8" fill="#E9B366"/>
+      </svg>
+
+      <svg viewBox="0 0 64 64" width="150" height="150" role="img" aria-label="GUL — Isha through to first light">
+        <path d="M-19 24.75 C-27 12.75 -24 -3.25 -12 -13.25 C-7 -17.25 -3 -20.25 0 -24.75 C3 -20.25 7 -17.25 12 -13.25 C24 -3.25 27 12.75 19 24.75 Z" transform="translate(32,32)" fill="none" stroke="#F2EDE3" stroke-width="1.5" stroke-linejoin="round"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="#F2EDE3" transform="translate(32,32) rotate(0) scale(.84)"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="#F2EDE3" transform="translate(32,32) rotate(72) scale(.84)"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="#F2EDE3" transform="translate(32,32) rotate(144) scale(.84)"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="#F2EDE3" transform="translate(32,32) rotate(216) scale(.84)"/>
+        <path d="M0 -3.5 C-4.54 -6.54 -7.56 -11.06 -7.56 -15.68 C-7.56 -19.88 -4.99 -22.74 -1.51 -23.83 C-0.83 -24.04 -0.3 -23.66 0 -24.5 C0.3 -23.66 0.83 -24.04 1.51 -23.83 C4.99 -22.74 7.56 -19.88 7.56 -15.68 C7.56 -11.06 4.54 -6.54 0 -3.5 Z" fill="#F2EDE3" transform="translate(32,32) rotate(288) scale(.84)"/>
+        <circle cx="32" cy="32" r="8.6" fill="#E6ECF2"/>
+        <circle cx="37.6" cy="28.2" r="8.6" fill="#0A0F0E"/>
+      </svg>
+    </div>
+    <p class="caption">Five noted · one noted · Isha through to first light</p>
+  </div>
+</section>
+
+<!-- ── 02 / IDENTITY ─────────────────────────────────────── -->
+<section>
+  <div class="wrap">
+    <p class="eyebrow"><span class="num">02</span> / Design + identity</p>
+    <h2>The sun is the palette. Everything else is a small fixed set.</h2>
+
+    <p>
+      <strong style="color:var(--cream);font-weight:500">Gul</strong> (گُل) is the rose. The
+      Qur'an's reward for those who guard their prayers is a garden — Gul is what grows in it.
+      Deliberately not a crescent: the crescent-and-star is the most-used mark in this category
+      and is Ottoman heraldry rather than anything scriptural, so reaching for it buys
+      recognition and spends distinctiveness in the same move.
+    </p>
+
+    <div class="ramp" role="img" aria-label="Eleven-stop solar ramp from the dead of night to the meridian">
+      <i style="background:#2A263A"></i><i style="background:#563642"></i><i style="background:#96463E"></i>
+      <i style="background:#BA543A"></i><i style="background:#D66434"></i><i style="background:#E27836"></i>
+      <i style="background:#EB9446"></i><i style="background:#F2B864"></i><i style="background:#F9DE9E"></i>
+      <i style="background:#FDF1D2"></i><i style="background:#FFFBEE"></i>
+    </div>
+    <p class="caption">−40° to +70° · the twilight stops sit near −22°, where Fajr and Isha fall</p>
+
+    <p style="margin-top:26px">
+      Eleven stops interpolated by solar altitude, and the setting sun runs warmer than the
+      rising sun at the same angle — dusk should not look like dawn. Nothing else in the
+      product may be warm.
+    </p>
+
+    <div class="swatches">
+      <span class="sw"><b style="background:#05080A;box-shadow:inset 0 0 0 1px #2A3630"></b><span>Ink · #05080A</span></span>
+      <span class="sw"><b style="background:#F2EDE3"></b><span>Cream · #F2EDE3</span></span>
+      <span class="sw"><b style="background:#7CD9A6"></b><span>Noted · #7CD9A6</span></span>
+      <span class="sw"><b style="background:#4A3A31"></b><span>Earth · #4A3A31</span></span>
+      <span class="sw"><b style="background:#E6ECF2"></b><span>Moon · #E6ECF2</span></span>
+    </div>
+
+    <div style="margin-top:52px">
+      <div class="rule">
+        <span class="n">01</span>
+        <p><strong>Gold is the sun and nothing else.</strong>
+          No gold buttons, no gold borders. Green means a prayer was noted and nothing else.
+          A lapse is earth. There is no red anywhere in the product.</p>
+      </div>
+      <div class="rule">
+        <span class="n">02</span>
+        <p><strong>Two motion laws, never mixed.</strong>
+          The sun is linear at 600ms, because it does not accelerate for anybody and moves
+          whether or not the app is open. A petal eases at 760ms, because it answers a person —
+          and fires only when you note a prayer, never on a timer.</p>
+      </div>
+      <div class="rule">
+        <span class="n">03</span>
+        <p><strong>Type does one job each.</strong>
+          Instrument Serif for prayer names, times and anything meant to be read slowly.
+          DM Sans for every interface element. Amiri for Qur'anic Arabic, at double line height,
+          never animated and never decorative.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 03 / DESIGN BRIEF ─────────────────────────────────── -->
+<section id="brief">
+  <div class="wrap">
+    <p class="eyebrow"><span class="num">03</span> / Design brief</p>
+    <h2>Make prayer easy to keep without making it something to score.</h2>
+
+    <div class="cols">
+      <div><h3>Purpose built</h3><p>Prayer times that are locally accurate, reminders on the user's own terms, and a quiet
+        private place to note five prayers a day — with no claim about anyone's standing.</p></div>
+
+      <div><h3>The product answer</h3><p>A day is one flower. Note a prayer and its petal opens; the sun at the centre reports
+        what the sky is actually doing. The record is the reward.</p></div>
+
+      <div><h3>What it refuses to do</h3><p>No streak, no percentage, no perfect day, no aggregate anywhere. Nothing is auto-marked.
+        A window that passed unnoted is simply unopened, and that is all.</p></div>
+
+      <div><h3>Privacy posture</h3><p>Records live on the device and work with no account and no network. Sync is opt-in and
+        encrypted before it leaves; coordinates are used locally and never uploaded.</p></div>
+
+      <div><h3>Accessibility</h3><p>Colour is never the only state indicator — every state carries a glyph and a label.
+        44×44 minimum targets throughout, and reduced motion collapses the petal and dome to
+        1ms while the sun keeps moving, because it is information.</p></div>
+
+      <div><h3>The line it holds</h3><p>The app cannot know whether a prayer happened, so it never says one did. No claim of
+        divine reward, spiritual standing or prayer validity — questions of practice go to a
+        qualified scholar, not to software.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 04 / PRODUCT PATH ─────────────────────────────────── -->
+<section>
+  <div class="wrap">
+    <p class="eyebrow"><span class="num">04</span> / Product path</p>
+    <h2>From a working web preview to a build that can wake you at Fajr.</h2>
+
+    <div class="cols three">
+      <div><h3>Now — web preview</h3><p>Prayer times, marking, history and the live mark all work in the browser. It installs
+        to a home screen and runs offline.</p></div>
+
+      <div><h3>Next — the native build</h3><p>Scheduled reminders are the reason the native build exists: a web page cannot reliably
+        wake anyone before dawn.</p></div>
+
+      <div><h3>Market-ready release</h3><p>Account recovery, consent and privacy documentation, a licensed Adhan recitation with
+        its attribution, and store distribution.</p></div>
+    </div>
+
+    <div class="status">
+      <p>
+        <strong style="font-weight:500">Status.</strong> Web preview is live and in use.
+        The native build and the store release are a deliberate next phase, not a claim
+        already made.
+      </p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <p class="colophon">FT Experiments / GUL / Pray with the sun</p>
+  </div>
+</footer>
+
+</body>
+</html>
