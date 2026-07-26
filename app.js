@@ -637,7 +637,7 @@ el.geoBtn.addEventListener('click', () => {
   }, () => { el.geoBtn.textContent = 'Could not locate — search a city'; }, { timeout: 10000 });
 });
 el.placeBtn.addEventListener('click', () => {
-  document.getElementById('settings').scrollIntoView({ behavior: 'smooth' });
+  location.hash = '#settings';
 });
 
 /* ── Account / auth UI ───────────────────────────────────────────── */
@@ -675,7 +675,7 @@ function openAuth() {
 function closeAuth() { el.authOverlay.hidden = true; }
 
 el.authBtn.addEventListener('click', () => {
-  if (Sync.user) document.getElementById('settings').scrollIntoView({ behavior: 'smooth' });
+  if (Sync.user) location.hash = '#settings';
   else openAuth();
 });
 $('auth-close').addEventListener('click', closeAuth);
@@ -788,3 +788,32 @@ window.addEventListener('resize', () => drawFlower());
     }, 240 + k * 200));
   }));
 })();
+
+/* ── Views ───────────────────────────────────────────────────────────
+   Today, Timetable, History and Settings are tabs, not sections of one
+   page. They were previously stacked and the nav links were plain
+   anchors, so Settings sat pasted onto the bottom of the landing page —
+   the first thing a person saw after their own prayers was a
+   preferences screen. One view is visible at a time; the hash is the
+   route, so back and forward work and a tab can be linked to directly. */
+const VIEWS = ['today', 'timetable', 'history', 'settings'];
+
+function route() {
+  const asked = (location.hash || '').replace('#', '');
+  const view = VIEWS.includes(asked) ? asked : 'today';
+
+  VIEWS.forEach(v => {
+    const sec = document.getElementById(v);
+    if (sec) sec.hidden = (v !== view);
+  });
+  document.querySelectorAll('.links a').forEach(a =>
+    a.classList.toggle('on', a.getAttribute('href') === '#' + view));
+
+  /* Timetable and History draw from the same state as Today, so a tab that
+     has been hidden for a while would otherwise show a stale day. */
+  renderAll();
+  window.scrollTo(0, 0);
+}
+
+addEventListener('hashchange', route);
+route();

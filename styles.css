@@ -76,7 +76,6 @@ h3 { font-family: var(--pn-display); font-weight: 400; font-size: 23px; color: v
 }
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand-word { font-family: var(--pn-display); font-size: 24px; letter-spacing: .16em; color: var(--pn-ink); }
-.brand-ar { font-family: var(--pn-arabic); font-size: 19px; color: var(--pn-sun); }
 .links { display: flex; gap: clamp(14px, 3vw, 34px); }
 .links a {
   font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
@@ -210,6 +209,11 @@ h3 { font-family: var(--pn-display); font-weight: 400; font-size: 23px; color: v
 .verse-ref { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--pn-label); }
 
 /* ── Sheets (timetable / history / settings) ─────────────────────── */
+/* Views are tabs, not stacked panels. `hidden` alone loses to the display
+   values below, so it is made to win explicitly — otherwise every section
+   renders on top of Today and the app reads as one long settings page. */
+[hidden] { display: none !important; }
+
 .sheet {
   max-width: 860px; margin: 0 auto;
   padding: clamp(48px, 8vh, 84px) clamp(20px, 5vw, 40px) 0;
