@@ -255,7 +255,7 @@ const el = {
   polarNote: $('polar-note'), adjustedNote: $('adjusted-note'),
   ap: { sky: $('ap-sky'), shaft: $('ap-shaft'), sun: $('ap-sun'), ground: $('ap-ground'),
         shadow: $('ap-shadow'), gnomon: $('ap-gnomon'), frame: document.querySelector('.aperture-frame'),
-        phase: $('ap-phase'), meta: $('ap-meta') },
+        phase: $('ap-phase'), meta: $('ap-meta'), scrub: $('ap-scrub') },
   ttDate: $('tt-date'), ttRows: $('tt-rows'),
   monthTitle: $('month-title'), monthGrid: $('month-grid'),
   placeName: $('place-name'), placeMeta: $('place-meta'), placeQibla: $('place-qibla'),
@@ -399,7 +399,70 @@ function drawAperture(t, day) {
   const nxt = ws.find(w => w.from > t) || { ...ws[0], from: ws[0].from + 1440 };
   el.ap.phase.textContent = act ? `${act.name} — ${act.note}` : 'Between windows';
   el.ap.meta.textContent = `${fmtMinutes(t)} · ${alt > 0 ? '+' : ''}${alt.toFixed(1)}° · ${nxt.name} at ${fmtMinutes(nxt.from)}`;
+
+  const away = scrubT !== null;
+  el.ap.scrub.textContent = away ? 'Return to now' : 'Drag the window to move through the day';
+  el.ap.scrub.classList.toggle('away', away);
 }
+
+/* ── Scrubbing ───────────────────────────────────────────────────────
+   The drag moves the clock; the sun then sits wherever the sun really
+   is at that minute. Nothing here invents a position — it is the same
+   solar function the live view uses, asked about a different time. The
+   flower is deliberately left alone: petals record what a person did,
+   and dragging a window is not praying. */
+let scrubT = null;
+
+(function scrubbing() {
+  const frame = el.ap.frame;
+  if (!frame) return;
+  let active = false;
+
+  const minuteAt = e => {
+    const r = frame.getBoundingClientRect();
+    const f = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+    return Math.round(f * 1439);
+  };
+
+  const paint = () => drawAperture(scrubT === null ? nowParts().min : scrubT, dayFor(todayKey()));
+
+  frame.addEventListener('pointerdown', e => {
+    active = true;
+    frame.setPointerCapture(e.pointerId);
+    frame.classList.add('scrubbing');
+    scrubT = minuteAt(e);
+    paint();
+  });
+
+  frame.addEventListener('pointermove', e => {
+    if (!active) return;
+    scrubT = minuteAt(e);
+    paint();
+  });
+
+  const release = () => {
+    if (!active) return;
+    active = false;
+    frame.classList.remove('scrubbing');
+    paint();   /* the 600ms linear is back; the sun walks home from here */
+  };
+  frame.addEventListener('pointerup', release);
+  frame.addEventListener('pointercancel', release);
+
+  /* Keyboard gets the same reach: a quarter hour a press. */
+  frame.tabIndex = 0;
+  frame.setAttribute('role', 'slider');
+  frame.setAttribute('aria-label', 'Time of day');
+  frame.addEventListener('keydown', e => {
+    const step = e.key === 'ArrowLeft' ? -15 : e.key === 'ArrowRight' ? 15 : 0;
+    if (!step) return;
+    e.preventDefault();
+    scrubT = Math.max(0, Math.min(1439, (scrubT === null ? nowParts().min : scrubT) + step));
+    paint();
+  });
+
+  el.ap.scrub.addEventListener('click', () => { scrubT = null; paint(); });
+})();
 
 /* ── Now / next ──────────────────────────────────────────────────── */
 function lastAndNext(t, key) {
@@ -723,7 +786,9 @@ function renderAll() {
   drawHeader();
   const { t, day } = drawFlower();
   drawNow(t, todayKey());
-  drawAperture(t, day);
+  /* A held scrub survives the minute tick — the clock moving under you
+     should not yank the window back. Releasing is what returns it. */
+  drawAperture(scrubT === null ? t : scrubT, day);
   drawTimetable();
   drawHistory();
   drawSettings();

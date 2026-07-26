@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- Same viewport line Ironcade uses. `user-scalable=no` + `maximum-scale=1`
+     is what stops a double-tap from zooming the page — the tap should note a
+     prayer, not resize the app. `viewport-fit=cover` lets the ink run under
+     the notch and home indicator; the safe-area padding in styles.css keeps
+     the nav and footer clear of both. iOS still allows a deliberate pinch,
+     so the accessibility escape hatch survives. -->
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Gul — Pray your five</title>
 <meta name="description" content="Gul — an Islamic prayer tracker. Five prayers, five domes, one sun. Prayer times where you are, and a quiet private place to note your five daily prayers.">
 <meta name="theme-color" content="#05080A">
@@ -15,7 +21,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Amiri:wght@400&display=swap">
-<link rel="stylesheet" href="./styles.css?v=5">
+<link rel="stylesheet" href="./styles.css?v=8">
 <style>.auth-overlay[hidden]{display:none}</style>
 
 <!-- ── Private preview gate ────────────────────────────────────────────
@@ -194,6 +200,7 @@
   <a class="brand" href="#today">
     <img src="./gul-mark.svg" alt="Gul" width="34" height="34">
     <span class="brand-word">GUL</span>
+    <span class="brand-slogan">Pray your five.</span>
   </a>
   <nav class="links">
     <a href="#today">Today</a>
@@ -263,6 +270,7 @@
       <div class="ap-readout">
         <div class="ap-phase" id="ap-phase">—</div>
         <div class="ap-meta" id="ap-meta">—</div>
+        <button class="ap-scrub" id="ap-scrub" type="button">Drag the window to move through the day</button>
       </div>
     </div>
   </section>
@@ -375,6 +383,12 @@
   <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
     <img src="./gul-mark.svg" alt="" width="44" height="44">
     <div class="auth-title" id="auth-title">Your garden, everywhere</div>
+    <!-- The card is called a garden because the Qur'an calls it one. Naming
+         the source is the difference between a promise and a decoration. -->
+    <blockquote class="auth-verse">
+      <p>“Successful indeed are the believers … and those who guard their prayers. It is they who will inherit Firdaus — there they will remain forever.”</p>
+      <cite>Qur'an 23:1, 9–11</cite>
+    </blockquote>
     <p class="auth-sub">An account keeps your notes safe and shows the same flower on every device. Email and a password is all it takes.</p>
     <input class="auth-input" id="auth-email" type="email" autocomplete="email" placeholder="Email">
     <input class="auth-input" id="auth-pass" type="password" autocomplete="current-password" placeholder="Password (6+ characters)">
@@ -386,6 +400,6 @@
   </div>
 </div>
 
-<script type="module" src="./app.js?v=5"></script>
+<script type="module" src="./app.js?v=8"></script>
 </body>
 </html>

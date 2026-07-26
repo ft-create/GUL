@@ -74,8 +74,30 @@ h3 { font-family: var(--pn-display); font-weight: 400; font-size: 23px; color: v
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--pn-line-soft);
 }
+/* Belt and braces with the viewport line: `manipulation` removes the 300ms
+   double-tap-to-zoom wait on every tappable thing, so a tap that notes a
+   prayer registers immediately. The aperture overrides this with
+   `touch-action: none` because it needs the whole gesture for scrubbing. */
+html, body, button, a, .pill, .tt-row, .m-cell { touch-action: manipulation; }
+
+/* viewport-fit=cover puts the page under the notch and the home indicator.
+   These two lines are what keep the nav and the footer out from under them. */
+.nav { padding-top: calc(16px + env(safe-area-inset-top)); }
+.foot { padding-bottom: calc(28px + env(safe-area-inset-bottom)); }
+
 .brand { display: flex; align-items: center; gap: 12px; }
 .brand-word { font-family: var(--pn-display); font-size: 24px; letter-spacing: .16em; color: var(--pn-ink); }
+/* The slogan the experiments card carries, carried here too, in the same
+   sun ramp — first light to meridian. The hub and the app should read as
+   one thing, and this is the cheapest place to say so. */
+.brand-slogan {
+  font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase;
+  padding-left: 13px;
+  border-left: 1px solid var(--pn-line-soft);
+  background: linear-gradient(92deg, #D66434, #F2B864 58%, #FDF1D2);
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent; color: transparent;
+}
 .links { display: flex; gap: clamp(14px, 3vw, 34px); }
 .links a {
   font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
@@ -132,7 +154,16 @@ h3 { font-family: var(--pn-display); font-weight: 400; font-size: 23px; color: v
 #flower .petal { transition: all var(--pn-dur-grow) var(--pn-ease); }
 #flower #disc { transition: all var(--pn-dur-sun) linear; }
 
-.tips { position: absolute; inset: 0; pointer-events: none; }
+/* The label ring must share the flower's centre, not the stage's top-left.
+   With `inset: 0` plus an explicit width, `right` is dropped and the box
+   anchors left — which put every label off by half the difference between
+   the stage and the mark, and read as a crooked flower. Centring the box
+   is what makes the five names land on their own petal tips. */
+.tips {
+  position: absolute; top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
 .tip {
   position: absolute; transform: translate(-50%, -50%);
   font-size: 9.5px; letter-spacing: .16em; text-transform: uppercase; white-space: nowrap;
@@ -196,6 +227,24 @@ h3 { font-family: var(--pn-display); font-weight: 400; font-size: 23px; color: v
 .ap-readout { text-align: center; display: grid; gap: 6px; }
 .ap-phase { font-family: var(--pn-display); font-size: 20px; color: var(--pn-ink-2); }
 .ap-meta { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; color: var(--pn-label); }
+
+/* ── Scrubbing the aperture ──────────────────────────────────────────
+   Dragging moves the clock, not the sun. The sun still sits exactly
+   where it truly is at whatever minute the finger is holding — so the
+   window never lies, it is just showing a different hour. While the
+   finger is down the layers follow it with no transition at all: that
+   motion is the person's, and the person is not on a 600ms delay. On
+   release the 600ms linear returns and the sun travels back to now. */
+.aperture-frame { cursor: grab; touch-action: none; }
+.aperture-frame.scrubbing { cursor: grabbing; }
+.aperture-frame.scrubbing .ap-layer { transition: none; }
+.ap-scrub {
+  font-size: 11px; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--pn-faint); transition: color var(--pn-dur-tap) var(--pn-ease);
+}
+.aperture-frame.scrubbing ~ .ap-readout .ap-scrub,
+.ap-scrub.away { color: var(--pn-sun-pale); }
+@media (prefers-reduced-motion: reduce) { .ap-layer { transition-duration: 1ms; } }
 
 /* ── Verse ───────────────────────────────────────────────────────── */
 .verse {
@@ -336,6 +385,9 @@ h3 { font-family: var(--pn-display); font-weight: 400; font-size: 23px; color: v
 @media (max-width: 1080px) {
   .today { grid-template-columns: 1fr 1fr; }
   .today-aperture { grid-column: 1 / -1; }
+  /* The nav has to hold four tabs and a sign-in; the slogan is the first
+     thing that can go, because the wordmark already says who this is. */
+  .brand-slogan { display: none; }
 }
 @media (max-width: 720px) {
   .today { grid-template-columns: 1fr; }
@@ -413,6 +465,20 @@ h3 { font-family: var(--pn-display); font-weight: 400; font-size: 23px; color: v
 }
 .auth-title { font-family: var(--pn-display); font-size: 27px; color: var(--pn-ink); }
 .auth-sub { margin: 0; font-size: 13px; line-height: 1.6; color: var(--pn-muted); }
+.auth-verse {
+  margin: 2px 0 6px; padding: 16px 18px;
+  border: 1px solid var(--pn-line-soft); border-radius: var(--pn-r-well);
+  background: rgba(242,237,227,.02);
+  display: grid; gap: 10px;
+}
+.auth-verse p {
+  margin: 0; font-family: var(--pn-display); font-style: italic;
+  font-size: 15.5px; line-height: 1.55; color: var(--pn-ink-2);
+}
+.auth-verse cite {
+  font-style: normal; font-size: 10px; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--pn-label);
+}
 .auth-input {
   padding: 13px 16px; min-height: 48px; border-radius: 14px;
   border: 1px solid #2A3630; background: #0E1513; color: var(--pn-ink-2);
