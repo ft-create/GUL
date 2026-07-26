@@ -3,12 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- iOS Safari sniffs bare number ranges and turns them into blue tel: links
+     of its own accord — "1900-2100" became one. This switches every flavour
+     of that detection off; the CSS rule below neutralises any that still
+     slip through, so a stray auto-link inherits the page instead of
+     shouting in system blue. -->
+<meta name="format-detection" content="telephone=no,date=no,address=no,email=no">
 <title>GUL — Design brief · FT Experiments</title>
 <meta name="description" content="GUL — an Islamic prayer tracker whose mark is five domes around the sun. Design brief: the mark, the sun ramp, motion laws, and the product path.">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;700&family=Amiri&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#05080A; --shell:#0A0F0E; --card:#0E1513; --line:#1C2723; --line-2:#2A3630;
@@ -17,8 +23,9 @@
     --noted:#7CD9A6; --earth:#4A3A31; --sun:#E9B366; --night:#9AA6AE;
     --display:'Instrument Serif',Georgia,serif;
     --ui:'DM Sans',system-ui,sans-serif;
-    --arabic:'Amiri',serif;
   }
+  /* Belt to the format-detection meta's braces. */
+  a[href^="tel:"]{color:inherit;text-decoration:none;pointer-events:none}
   *{box-sizing:border-box}
   html{scroll-behavior:smooth}
   body{
@@ -73,7 +80,6 @@
     font-family:var(--display);font-size:clamp(64px,11vw,120px);line-height:.9;
     letter-spacing:.06em;color:var(--paper);margin:0;
   }
-  .arabic{font-family:var(--arabic);font-size:44px;color:var(--sun);line-height:1}
   .tag{
     font-size:12px;letter-spacing:.34em;text-transform:uppercase;
     color:var(--sun);margin:22px 0 0;
@@ -431,10 +437,10 @@
 
     <p>
       <strong style="color:var(--cream);font-weight:500">Gul</strong> is the flower — the rose.
-      The Qur'an's reward for those who guard their prayers is a garden; Gul is what grows in it.
-      Deliberately not a crescent: the crescent-and-star is the most-used mark in this category
-      and is Ottoman heraldry rather than anything scriptural, so reaching for it buys
-      recognition and spends distinctiveness in the same move.
+      Five prayers, five petals: a day fully noted is a flower in full bloom, and that is the
+      whole metaphor. Deliberately not a crescent: the crescent-and-star is the most-used mark
+      in this category, so reaching for it buys recognition and spends distinctiveness in the
+      same move.
     </p>
 
     <div class="ramp" role="img" aria-label="Eleven-stop solar ramp from the dead of night to the meridian">
@@ -471,8 +477,8 @@
         <span class="n">02</span>
         <p><strong>Type does one job each.</strong>
           Instrument Serif for prayer names, times and anything meant to be read slowly.
-          DM Sans for every interface element, labels uppercase at .22em. Amiri for Qur'anic
-          Arabic at double line height — never animated, never decorative, never tappable.</p>
+          DM Sans for every interface element, labels uppercase at .22em. Two families, no
+          third — a type system this small only stays legible if nothing is added to it.</p>
       </div>
       <div class="rule">
         <span class="n">03</span>
@@ -730,7 +736,7 @@
      off screen, and for a person who has asked for reduced motion it holds
      a single still frame at the real current minute instead of looping. -->
 <script type="module">
-import { solarDay, altitudeAt, fmtMinutes, minuteOf } from '../solar.js';
+import { solarDay, altitudeAt, fmtMinutes, minuteOf } from '../solar.js?v=14';
 
 const demo = document.getElementById('lawdemo');
 if (demo) {
