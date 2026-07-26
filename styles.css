@@ -34,7 +34,6 @@
 
   --pn-display: 'Instrument Serif', Georgia, serif;
   --pn-ui:      'DM Sans', system-ui, sans-serif;
-  --pn-arabic:  'Amiri', serif;
 
   --pn-r-card: 24px;
   --pn-r-panel: 24px;
@@ -254,17 +253,6 @@ html, body, button, a, .pill, .tt-row, .m-cell { touch-action: manipulation; }
 .ap-scrub.away:hover { color: var(--pn-sun-pale); }
 @media (prefers-reduced-motion: reduce) { .ap-layer { transition-duration: 1ms; } }
 
-/* ── Verse ───────────────────────────────────────────────────────── */
-.verse {
-  text-align: center; padding: clamp(48px, 9vh, 96px) 24px;
-  border-top: 1px solid var(--pn-line-soft); border-bottom: 1px solid var(--pn-line-soft);
-  background: var(--pn-surface);
-  display: grid; gap: 18px; justify-items: center;
-}
-.verse-ar { font-family: var(--pn-arabic); font-size: clamp(24px, 3.4vw, 32px); line-height: 2; color: #F0E6D6; max-width: 20ch; }
-.verse-en { font-family: var(--pn-display); font-style: italic; font-size: clamp(19px, 2.4vw, 25px); line-height: 1.5; color: var(--pn-ink-2); max-width: 34ch; }
-.verse-ref { font-size: 11px; letter-spacing: .22em; text-transform: uppercase; color: var(--pn-label); }
-
 /* ── Sheets (timetable / history / settings) ─────────────────────── */
 /* Views are tabs, not stacked panels. `hidden` alone loses to the display
    values below, so it is made to win explicitly — otherwise every section
@@ -322,7 +310,7 @@ html, body, button, a, .pill, .tt-row, .m-cell { touch-action: manipulation; }
   display: flex; align-items: center; justify-content: center;
 }
 
-/* ── History garden ──────────────────────────────────────────────── */
+/* ── History calendar ────────────────────────────────────────────── */
 .month-title { font-family: var(--pn-display); font-size: 23px; color: var(--pn-ink-2); padding: 20px 0 12px; }
 .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .m-cell {
@@ -473,20 +461,6 @@ html, body, button, a, .pill, .tt-row, .m-cell { touch-action: manipulation; }
 }
 .auth-title { font-family: var(--pn-display); font-size: 27px; color: var(--pn-ink); }
 .auth-sub { margin: 0; font-size: 13px; line-height: 1.6; color: var(--pn-muted); }
-.auth-verse {
-  margin: 2px 0 6px; padding: 16px 18px;
-  border: 1px solid var(--pn-line-soft); border-radius: var(--pn-r-well);
-  background: rgba(242,237,227,.02);
-  display: grid; gap: 10px;
-}
-.auth-verse p {
-  margin: 0; font-family: var(--pn-display); font-style: italic;
-  font-size: 15.5px; line-height: 1.55; color: var(--pn-ink-2);
-}
-.auth-verse cite {
-  font-style: normal; font-size: 10px; letter-spacing: .22em;
-  text-transform: uppercase; color: var(--pn-label);
-}
 .auth-google[hidden], .auth-or[hidden] { display: none !important; }
 .auth-google {
   display: flex; align-items: center; justify-content: center; gap: 11px;

@@ -13,7 +13,19 @@
 
 const FIREBASE_CONFIG = {
   apiKey: 'AIzaSyD6jN5hO3PD6opQkzl3FBLB2K52lJtfR-Y',
-  authDomain: 'pray-now-15f80.firebaseapp.com',
+  /* Not pray-now-15f80.firebaseapp.com, which is where Firebase actually
+     serves the OAuth handler. That host is what Google prints on the account
+     chooser — "to continue to pray-now-15f80.firebaseapp.com" — and to anyone
+     who did not create the project it reads like a phishing domain. Project
+     IDs can never be renamed, so the fix is to serve the handler from a
+     domain of ours: gul.fareedtareen.com is a Cloudflare Pages project whose
+     functions/__/[[path]].js forwards the whole /__/ namespace straight to
+     Firebase. Same handshake, our name on it.
+
+     If Google sign-in ever breaks, check that proxy first — and note this
+     domain must also be listed under Firebase → Authentication → Settings →
+     Authorized domains, or the flow is rejected before it starts. */
+  authDomain: 'gul.fareedtareen.com',
   projectId: 'pray-now-15f80',
   storageBucket: 'pray-now-15f80.firebasestorage.app',
   messagingSenderId: '861447478625',
@@ -147,7 +159,7 @@ export const Sync = {
     const { auth: a, authMod } = this._fb;
     const provider = new authMod.GoogleAuthProvider();
     /* Always ask which account. A shared laptop should not silently sign
-       someone into the last person's garden. */
+       someone into the last person's record. */
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
       return await authMod.signInWithPopup(a, provider);

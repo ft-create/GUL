@@ -29,7 +29,7 @@ Runtime network calls, and that is the whole list:
 
 | Host | What for | Removable? |
 |---|---|---|
-| `fonts.googleapis.com` / `fonts.gstatic.com` | Instrument Serif, DM Sans, Amiri | Yes — self-host the woff2 files |
+| `fonts.googleapis.com` / `fonts.gstatic.com` | Instrument Serif, DM Sans | Yes — self-host the woff2 files |
 | `www.gstatic.com` | Firebase SDK (ES modules, versioned in `firebase.js`) | Only by vendoring the SDK |
 | `identitytoolkit.googleapis.com` | The Google sign-in preflight | Dies with Firebase |
 
@@ -120,8 +120,8 @@ re-do three things that live in the console and *not* in the repo:
 - **Deploy `firestore.rules`.** The file being committed here means nothing;
   rules are enforced only once deployed. Verify by fetching
   `gulUsers/anything` unauthenticated — a correct setup answers **403
-  PERMISSION_DENIED**. A 404 means the rules are open and every garden is
-  readable.
+  PERMISSION_DENIED**. A 404 means the rules are open and every account's
+  record is readable.
 - **Enable the sign-in providers.** Email/Password, and Google if wanted.
   Google also needs a public-facing name (currently `Gul`) and a support email
   (currently `ft@fareedtareen.com`) — both are shown to users on the consent

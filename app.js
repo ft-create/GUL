@@ -4,9 +4,9 @@
 
 import {
   solarDay, altitudeAt, shadowRatioAt, windows, fmtMinutes, METHODS,
-} from './solar.js?v=13';
-import { QUICK, searchCities } from './cities.js?v=13';
-import { Sync } from './firebase.js?v=13';
+} from './solar.js?v=15';
+import { QUICK, searchCities } from './cities.js?v=15';
+import { Sync } from './firebase.js?v=15';
 /* ── Why every internal import carries ?v= ───────────────────────────────
    index.html versions styles.css and app.js, but a module graph is invisible
    to it: app.js pulls solar.js, cities.js and firebase.js by bare path, so a
@@ -583,7 +583,7 @@ function drawTimetable() {
 $('day-prev').addEventListener('click', () => { viewKey = shiftKey(viewKey, -1); drawTimetable(); });
 $('day-next').addEventListener('click', () => { viewKey = shiftKey(viewKey, 1); drawTimetable(); });
 
-/* ── History: the garden ─────────────────────────────────────────── */
+/* ── History ─────────────────────────────────────────────────────── */
 let monthOffset = 0; // 0 = current month
 
 function miniFlower(n, size) {
@@ -854,7 +854,7 @@ Sync.onRemoteNotes = mergeRemoteDay;
 Sync.onRemoteSettings = mergeRemoteSettings;
 /* After the first cloud snapshot, upload anything the cloud doesn't
    have or that's newer locally — first sign-in on a new device pulls
-   everything down; first sign-in ever pushes the local garden up. */
+   everything down; first sign-in ever pushes the local record up. */
 Sync.onFirstSync = () => {
   Object.entries(notes).forEach(([key, dayN]) => {
     if ((dayN.u || 0) > (Sync.remoteU[key] || 0)) {

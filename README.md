@@ -1,10 +1,9 @@
 # GUL — Pray your five
 
-An Islamic prayer tracker. Five prayers, five domes, one sun — a full bloom a day.
-The mark is not like a dome; the petal **is** the dome, stretched. At night the
-centre disc turns grey — never a crescent.
+A prayer tracker. Five prayers, five petals, one sun — a full bloom a day.
+At night the centre disc turns grey.
 Real astronomical prayer times computed in the browser, a living flower for
-the day, and optional accounts that sync a private garden across devices.
+the day, and optional accounts that sync your record privately across devices.
 
 ## What's here
 
