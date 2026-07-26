@@ -117,7 +117,33 @@ export const Sync = {
      console or this throws: the Google provider has to be enabled, and the
      site's domain has to be in Auth → Settings → Authorized domains. The
      error codes for both are mapped in app.js so the card says which. */
+  /* ── Preflight ────────────────────────────────────────────────────────
+     Firebase publishes the project's authorized-domain list at an open
+     endpoint. Asking it first is the difference between a sentence on the
+     card and a one-way trip: if the domain is not on that list, the OAuth
+     request is invalid, and Google answers an invalid request by bouncing
+     the visitor to a generic Google Workspace sign-up page — off our site,
+     with no way back and nothing explaining what happened. A friend who
+     lands there is simply lost. So we never start the flow we know will
+     fail. A failed probe returns true rather than false: a network hiccup
+     should not disable a working button. */
+  async googleAvailable() {
+    if (this._googleOK !== undefined) return this._googleOK;
+    try {
+      const r = await fetch(
+        `https://identitytoolkit.googleapis.com/v1/projects?key=${FIREBASE_CONFIG.apiKey}`);
+      const cfg = await r.json();
+      this._googleOK = (cfg.authorizedDomains || []).includes(location.hostname);
+    } catch (e) { this._googleOK = true; }
+    return this._googleOK;
+  },
+
   async signInWithGoogle() {
+    if (!await this.googleAvailable()) {
+      const e = new Error('This domain is not authorized for Google sign-in.');
+      e.code = 'auth/unauthorized-domain';
+      throw e;
+    }
     const { auth: a, authMod } = this._fb;
     const provider = new authMod.GoogleAuthProvider();
     /* Always ask which account. A shared laptop should not silently sign

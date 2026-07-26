@@ -4,9 +4,20 @@
 
 import {
   solarDay, altitudeAt, shadowRatioAt, windows, fmtMinutes, METHODS,
-} from './solar.js';
-import { QUICK, searchCities } from './cities.js';
-import { Sync } from './firebase.js';
+} from './solar.js?v=13';
+import { QUICK, searchCities } from './cities.js?v=13';
+import { Sync } from './firebase.js?v=13';
+/* ── Why every internal import carries ?v= ───────────────────────────────
+   index.html versions styles.css and app.js, but a module graph is invisible
+   to it: app.js pulls solar.js, cities.js and firebase.js by bare path, so a
+   deploy that changed only one of those left returning browsers running the
+   old copy against new calling code. That is exactly how
+   "Sync.signInWithGoogle is not a function" happened — the Google button
+   shipped in a fresh app.js while firebase.js came out of cache.
+
+   Bump this number on every deploy that touches any of the three, together
+   with the ?v= in index.html and the CACHE name in sw.js. All four move as
+   one, or the graph tears again. */
 
 /* ── Geometry: the petal IS the dome — the dome silhouette, stretched.
    Flat base, haunches swelling past the base, a point at the top.
@@ -737,8 +748,17 @@ function drawAuth() {
 
 function openAuth() {
   el.authOverlay.hidden = false;
+  el.authError.style.color = '';
   el.authError.textContent = '';
   setTimeout(() => el.authEmail.focus(), 50);
+  /* Hide the Google button outright when the project cannot serve it, rather
+     than offering something that can only disappoint. It reappears on its own
+     the moment the domain is authorized in the console — no deploy needed. */
+  const g = $('auth-google'), or = document.querySelector('.auth-or');
+  if (!g) return;
+  g.hidden = true; if (or) or.hidden = true;
+  if (!Sync._fb) return;
+  Sync.googleAvailable().then(ok => { g.hidden = !ok; if (or) or.hidden = !ok; });
 }
 function closeAuth() { el.authOverlay.hidden = true; }
 
