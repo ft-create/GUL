@@ -1,6 +1,8 @@
-# GUL — Pray with the sun
+# GUL — Pray your five
 
-An Islamic prayer tracker. Five prayers, five petals — a full bloom a day.
+An Islamic prayer tracker. Five prayers, five domes, one sun — a full bloom a day.
+The mark is not like a dome; the petal **is** the dome, stretched. At night the
+centre disc turns grey — never a crescent.
 Real astronomical prayer times computed in the browser, a living flower for
 the day, and optional accounts that sync a private garden across devices.
 
@@ -15,6 +17,8 @@ the day, and optional accounts that sync a private garden across devices.
 | `firebase.js` | Cloud layer — Firebase Auth + Firestore sync, offline-first |
 | `app.js` | Application logic — the flower, the Aperture, notes, sync, settings |
 | `sw.js` | Service worker — offline shell |
+| `brand/` | The full identity kit — lockups, states, mono/ink/brass/night marks, icons |
+| `designbrief/` | The GUL design brief, served at `/gul/designbrief` |
 | `manifest.webmanifest` | PWA manifest (installable) |
 | `firestore.rules` | Security rules — deploy these to the Firebase project |
 
@@ -43,19 +47,20 @@ The app is wired to project `pray-now-15f80`.
    the public client config and is safe to ship; access is governed by the
    rules.
 
-## Deploy to Cloudflare Pages (pray-now.pages.dev/gul/)
+## Deploy
 
-The site is plain static files with **relative paths**, so it works from any
-sub-path. Either:
+Production home: **experiment.fareedtareen.com/gul/** — served from the
+`public/gul/` folder of the `ft-create/ironcade` (Experiments) repo, which
+Cloudflare Pages auto-deploys on every push to `main`. This repo is the
+clean, standalone copy of the same app: pull it, and everything here runs
+with no build step.
 
-- connect this repo to Pages and set the output directory to the repo root,
-  then serve this folder as `/gul/` (e.g. copy into `public/gul/` of the
-  existing Pages project), or
-- drag-and-drop this folder into a Pages direct-upload deploy.
-
-No build step. `.nvmrc` is only there to keep Pages' auto-detection calm.
+The site is plain static files with **relative paths**, so it also works
+from any other sub-path — drag the folder into any static host and it runs.
 
 ## The one rule
 
 Nothing in the interface may be decorative. If a pixel moves, it moves
 because the sun moved.
+
+Slogan: **Pray your five.** · Store line: *Gul: Salah Tracker & Athan*
