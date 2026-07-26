@@ -106,6 +106,47 @@
   }
   .caption{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
 
+  /* ── The bloom rail ──────────────────────────────────────────────
+     A tall track with a sticky flower inside it, so scrolling the brief
+     plays one day: the sun rises, crosses, sets, and a dome opens at each
+     prayer. The reader arrives at section 01 having already watched the
+     thing section 01 describes. */
+  .rail{position:relative;height:340vh;border-bottom:1px solid var(--line)}
+  .rail-stage{
+    position:sticky;top:0;height:100vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;
+  }
+  .rail-sky{
+    position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(120% 68% at 50% 62%, var(--rail-glow, transparent) 0%, transparent 72%);
+  }
+  .rail-flower{position:relative;width:min(58vmin,420px);aspect-ratio:1;display:grid;place-items:center}
+  .rail-flower svg{width:100%;height:100%;overflow:visible}
+  /* No CSS transform here on purpose: an inline `style.transform` overrides an
+     SVG element's `transform` attribute, and the attribute is what places each
+     dome around the sun. The scroll handler writes the full attribute instead,
+     so placement and growth stay in one expression. */
+  .rail-flower .p{transition:fill .45s cubic-bezier(.22,1,.36,1)}
+  .rail-cap{position:relative;text-align:center;min-height:44px}
+  .rail-cap .t{
+    font-family:var(--display);font-size:clamp(20px,3vw,30px);color:var(--paper);
+    line-height:1.2;margin:0;
+  }
+  .rail-cap .s{
+    font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--label);margin:8px 0 0;
+  }
+  .rail-hint{
+    position:absolute;bottom:38px;left:50%;transform:translateX(-50%);
+    font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);
+  }
+  @media(prefers-reduced-motion:reduce){
+    /* No scroll story. The flower is simply shown, open, once. */
+    .rail{height:auto}
+    .rail-stage{position:static;height:auto;padding:90px 0}
+    .rail-flower .p{transition:none}
+    .rail-hint{display:none}
+  }
+
   .construct{
     display:grid;grid-template-columns:minmax(240px,340px) 1fr;gap:48px;align-items:center;
     margin-top:44px;
@@ -195,6 +236,28 @@
       <div><dt>Format</dt><dd>Web app (PWA) · native build planned</dd></div>
       <div><dt>Status</dt><dd>Live, with accounts and sync</dd></div>
     </dl>
+  </div>
+</div>
+
+<!-- ── THE BLOOM RAIL ────────────────────────────────────── -->
+<div class="rail" id="rail" aria-hidden="true">
+  <div class="rail-stage">
+    <div class="rail-sky" id="rail-sky"></div>
+    <div class="rail-flower">
+      <svg viewBox="0 0 64 64" role="presentation">
+          <path class="p" d="M-5.2 0 C-8 -4.84 -8 -9.68 -7.04 -13.2 C-5.28 -16.72 -2.4 -19.36 0 -22 C2.4 -19.36 5.28 -16.72 7.04 -13.2 C8 -9.68 8 -4.84 5.2 0 Z" transform="translate(32,32) rotate(0) translate(0,-5.6)"/>
+          <path class="p" d="M-5.2 0 C-8 -4.84 -8 -9.68 -7.04 -13.2 C-5.28 -16.72 -2.4 -19.36 0 -22 C2.4 -19.36 5.28 -16.72 7.04 -13.2 C8 -9.68 8 -4.84 5.2 0 Z" transform="translate(32,32) rotate(72) translate(0,-5.6)"/>
+          <path class="p" d="M-5.2 0 C-8 -4.84 -8 -9.68 -7.04 -13.2 C-5.28 -16.72 -2.4 -19.36 0 -22 C2.4 -19.36 5.28 -16.72 7.04 -13.2 C8 -9.68 8 -4.84 5.2 0 Z" transform="translate(32,32) rotate(144) translate(0,-5.6)"/>
+          <path class="p" d="M-5.2 0 C-8 -4.84 -8 -9.68 -7.04 -13.2 C-5.28 -16.72 -2.4 -19.36 0 -22 C2.4 -19.36 5.28 -16.72 7.04 -13.2 C8 -9.68 8 -4.84 5.2 0 Z" transform="translate(32,32) rotate(216) translate(0,-5.6)"/>
+          <path class="p" d="M-5.2 0 C-8 -4.84 -8 -9.68 -7.04 -13.2 C-5.28 -16.72 -2.4 -19.36 0 -22 C2.4 -19.36 5.28 -16.72 7.04 -13.2 C8 -9.68 8 -4.84 5.2 0 Z" transform="translate(32,32) rotate(288) translate(0,-5.6)"/>
+        <circle id="rail-sun" cx="32" cy="32" r="7.4" fill="#9AA6AE"/>
+      </svg>
+    </div>
+    <div class="rail-cap">
+      <p class="t" id="rail-title">Before first light</p>
+      <p class="s" id="rail-sub">Five domes, closed</p>
+    </div>
+    <p class="rail-hint">Scroll — one day</p>
   </div>
 </div>
 
@@ -427,5 +490,124 @@
   </div>
 </footer>
 
+
+<script>
+/* ── The bloom rail ───────────────────────────────────────────────────
+   Scrolling the brief plays one day. The sun's colour comes from the same
+   eleven-stop ramp the product uses, interpolated by a synthetic altitude,
+   and a dome opens as the scroll passes each prayer. Nothing here counts
+   anything: five domes open because a day has five prayers in it, and the
+   flower is identical at the end of every day it plays.                   */
+(function () {
+  var rail = document.getElementById('rail');
+  if (!rail) return;
+
+  var RAMP = [
+    [-40,[42,38,58]],[-30,[86,54,66]],[-22,[150,70,62]],[-14,[186,84,58]],
+    [-5,[214,100,52]],[1,[226,120,54]],[8,[235,148,70]],[20,[242,184,100]],
+    [40,[249,222,158]],[58,[253,241,210]],[70,[255,251,238]]
+  ];
+  var NIGHT = [154,166,174];
+
+  /* Setting runs warmer than rising at the same angle — dusk is not dawn. */
+  function sun(alt, setting) {
+    var lo = RAMP[0], hi = RAMP[RAMP.length - 1], i;
+    for (i = 0; i < RAMP.length - 1; i++) {
+      if (alt >= RAMP[i][0] && alt <= RAMP[i + 1][0]) { lo = RAMP[i]; hi = RAMP[i + 1]; break; }
+    }
+    var k = Math.max(0, Math.min(1, (alt - lo[0]) / ((hi[0] - lo[0]) || 1)));
+    var warm = (setting && alt < 30) ? [10, -6, -12] : [0, 0, 0];
+    return lo[1].map(function (v, j) {
+      return Math.max(0, Math.min(255, Math.round(v + (hi[1][j] - v) * k + warm[j])));
+    });
+  }
+
+  /* Sunrise and sunset sit at 0.20 and 0.76 of the scroll; the two twilight
+     prayers fall about 18° below the horizon on either side, which is where
+     this ramp's rose stops actually live. Dhuhr is the peak by construction. */
+  var RISE = 0.20, SET = 0.76;
+  var PRAYERS = [
+    { at: 0.15, name: 'Fajr',    note: 'The sky lifts before the disc does' },
+    { at: 0.48, name: 'Dhuhr',   note: 'The sun has passed its meridian' },
+    { at: 0.63, name: 'Asr',     note: 'The shadow has passed the upright' },
+    { at: 0.76, name: 'Maghrib', note: 'The disc is gone' },
+    { at: 0.81, name: 'Isha',    note: 'The last red has left the sky' }
+  ];
+
+  var petals = rail.querySelectorAll('.p');
+  var disc   = document.getElementById('rail-sun');
+  var sky    = document.getElementById('rail-sky');
+  var title  = document.getElementById('rail-title');
+  var sub    = document.getElementById('rail-sub');
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function paint(p) {
+    /* Altitude across the scroll, zero at sunrise and sunset so the sun's arc
+       is the middle of the story and the twilights sit either side of it. */
+    var alt = 64 * Math.sin(Math.PI * (p - RISE) / (SET - RISE));
+
+    /* Night is Isha through to first light — a prayer boundary, not a horizon
+       one. Defining it by altitude instead would paint the disc grey through
+       both twilights and throw away the whole rose half of the ramp, which is
+       the part that actually matters: it is where Fajr and Isha happen. */
+    var night = (p >= PRAYERS[4].at) || (p < PRAYERS[0].at);
+    var rgb   = night ? NIGHT : sun(alt, p > PRAYERS[1].at);
+    var css   = 'rgb(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ')';
+    var lift  = Math.max(0, Math.min(1, (alt + 8) / 64));
+
+    disc.setAttribute('r', (7.4 + (night ? 0 : lift * 3.4)).toFixed(2));
+    disc.setAttribute('fill', css);
+    disc.style.filter = 'drop-shadow(0 0 ' + (night ? 5 : 3 + lift * 9).toFixed(1) + 'px ' + css + ')';
+    sky.style.setProperty('--rail-glow',
+      'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + (night ? 0.05 : 0.05 + lift * 0.14).toFixed(3) + ')');
+
+    var open = 0, i;
+    for (i = 0; i < PRAYERS.length; i++) {
+      var pe = petals[i];
+      var on = p >= PRAYERS[i].at;
+      if (on) open++;
+
+      /* Each dome grows across a short window rather than popping at its
+         threshold, so scrolling *opens* it instead of switching it on. The
+         curve is the handoff's own ease, evaluated by hand because there is
+         no CSS transition to hand it to. */
+      var t = Math.max(0, Math.min(1, (p - PRAYERS[i].at) / 0.05));
+      var e = 1 - Math.pow(1 - t, 3);
+      var scale = (0.80 + 0.20 * e).toFixed(3);
+
+      pe.setAttribute('transform',
+        'translate(32,32) rotate(' + (i * 72) + ') translate(0,-5.6) scale(' + scale + ')');
+      pe.setAttribute('fill', on ? '#F2EDE3' : 'none');
+      pe.setAttribute('stroke', on ? 'none' : '#F2EDE3');
+      pe.setAttribute('stroke-width', on ? '0' : '1.1');
+      pe.setAttribute('opacity', on ? (0.4 + 0.6 * e).toFixed(3) : '0.4');
+    }
+
+    var last = null;
+    for (i = 0; i < PRAYERS.length; i++) if (p >= PRAYERS[i].at) last = PRAYERS[i];
+    title.textContent = last ? last.note : 'Before first light';
+    sub.textContent   = open === 0 ? 'Five domes, closed'
+                      : open + (open === 1 ? ' dome open' : ' domes open') + ' · ' + last.name;
+  }
+
+  if (reduce) { paint(0.95); return; }
+
+  var ticking = false;
+  function onScroll() {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(function () {
+      var r = rail.getBoundingClientRect();
+      var span = r.height - window.innerHeight;
+      var p = span > 0 ? Math.max(0, Math.min(1, -r.top / span)) : 0;
+      paint(p);
+      ticking = false;
+    });
+  }
+  addEventListener('scroll', onScroll, { passive: true });
+  addEventListener('resize', onScroll);
+  paint(0);
+})();
+</script>
 </body>
 </html>
