@@ -218,24 +218,41 @@
     position:absolute;width:26px;height:26px;border-radius:50%;margin:-13px 0 0 -13px;
     background:radial-gradient(circle at 50% 42%,#FFF7E6,var(--sun) 58%,rgba(233,179,102,0) 78%);
   }
-  .lawrow{
-    position:absolute;left:40px;right:40px;display:flex;align-items:center;gap:16px;
+  /* The five window marks, laid on the horizon where each prayer opens. */
+  .lawmark{position:absolute;left:0;right:0;top:180px;height:1px}
+  .lawmark i{
+    position:absolute;top:-1px;width:1px;height:14px;background:var(--sun);opacity:.5;
   }
-  .lawrow.r1{top:214px} .lawrow.r2{top:246px}
-  .lawkey{
-    flex:0 0 112px;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--label);
+  .lawmark b{
+    position:absolute;top:16px;transform:translateX(-50%);
+    font-size:9px;font-weight:400;letter-spacing:.14em;text-transform:uppercase;color:var(--label);
   }
-  .lawtrack{position:relative;flex:1;height:1px;background:var(--line-2)}
-  .lawdot{position:absolute;top:-4px;width:9px;height:9px;border-radius:50%;margin-left:-4.5px}
-  .lawdot.sun{background:var(--sun)}
-  .lawdot.petal{background:var(--cream)}
   .lawclock{
-    position:absolute;left:40px;right:40px;top:276px;
-    font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--faint);
+    position:absolute;left:40px;right:40px;top:216px;
+    font-family:var(--display);font-size:20px;color:var(--paper);
+  }
+  .lawtimes{
+    position:absolute;left:40px;right:40px;top:252px;
+    display:flex;flex-wrap:wrap;gap:6px 20px;
+    font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);
+  }
+  .lawtimes b{color:var(--muted);font-weight:400}
+
+  /* The city row. Pressing one rebuilds the day above it. */
+  .lawcities{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .lawcities button{
+    font:inherit;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    padding:9px 15px;border-radius:999px;cursor:pointer;
+    border:1px solid var(--line-2);background:transparent;color:var(--muted);
+    transition:color 180ms var(--ease),border-color 180ms var(--ease),background 180ms var(--ease);
+  }
+  .lawcities button:hover{color:var(--cream);border-color:var(--label)}
+  .lawcities button[aria-pressed="true"]{
+    background:var(--paper);border-color:var(--paper);color:var(--ink);
   }
   @media(max-width:720px){
-    .lawrow{left:22px;right:22px} .lawclock{left:22px;right:22px}
-    .lawkey{flex-basis:0;display:none}
+    .lawclock{left:22px;right:22px;font-size:17px}
+    .lawtimes{left:22px;right:22px;gap:5px 14px;font-size:10px}
     .lawticks{padding:0 22px}
   }
   /* The law applies to itself: if a person has asked for less motion, the
@@ -340,9 +357,8 @@
       The dome silhouette, stretched: flat base, haunches swelling past the base, a point at the
       top. Each dome belongs to one named prayer and is fixed to its position — Fajr at the top,
       then clockwise — so the shape of a day is legible at a glance. A prayer you have noted is
-      a dome filled cream; one you have not is the <em>same dome, outlined</em>. Never smaller,
-      never wilted, never red. Five-fold symmetry holds at every state, so the mark can never
-      score anyone.
+      a dome filled cream; one you have not yet is the <em>same dome, outlined</em>. Five-fold
+      symmetry holds at every state, so one look tells you where you are in the day.
     </p>
 
     <div class="markrow">
@@ -461,8 +477,8 @@
       <div class="rule">
         <span class="n">03</span>
         <p><strong>The voice is plain, quiet, second person.</strong>
-          Never promise reward, standing or acceptance. No streak language. Never
-          "don't miss a prayer" — a threat dressed as a benefit.</p>
+          It tells you the time, the place, and what you have noted. Nothing is dressed up:
+          a window is open or it is not, and the app says which.</p>
       </div>
     </div>
   </div>
@@ -471,56 +487,48 @@
 <!-- ── 03 / MOTION ───────────────────────────────────────── -->
 <section>
   <div class="wrap">
-    <p class="eyebrow"><span class="num">03</span> / The motion law</p>
-    <h2>Two families of motion, never mixed.</h2>
+    <p class="eyebrow"><span class="num">03</span> / The world clock</p>
+    <h2>One sun. Whichever city you are standing in.</h2>
     <p>
-      If a pixel moves, it moves because the sun moved — or because a person did. The sun is
-      linear: it does not accelerate for anybody, and it moves whether or not the app is open.
-      A petal is eased: it answers a person, so it moves like one — and only when the person
-      notes a prayer. <code style="font-size:13px;color:var(--cream)">prefers-reduced-motion</code>
-      collapses every transition to 1ms; the state still changes, it simply arrives instead of
-      travelling.
+      The five times are not fetched from anywhere — they are computed on the device from your
+      coordinates and the date, so the app works on a plane and in a basement. Change the place
+      and the whole day changes shape: how steeply the sun climbs, how long it stays up, how
+      late Isha finally lands. Press a city below and watch the same day rebuild itself.
     </p>
 
-    <!-- ── The law, running ────────────────────────────────────────────
-         Two dots crossing the same distance in the same time. The upper
-         one is the sun: constant speed, so it crosses the evenly spaced
-         ticks at evenly spaced moments — you can count it. The lower one
-         is a petal on cubic-bezier(.22,1,.36,1): it leaves late, arrives
-         early, and never lines up with a tick. Nothing here is described;
-         it is the same two curves the app ships, drawn at a speed a
-         person can watch. -->
+    <!-- ── The world clock, running ────────────────────────────────────
+         Real NOAA/Meeus solar position, not an approximation: the arc, the
+         disc and the readout all come out of the app's own solar.js for
+         the selected city, which is why Reykjavík's summer arc barely dips
+         and Singapore's is almost the same every day of the year.
+
+         Motion stays linear. The sun does not accelerate for anybody, and
+         it moves whether or not the app is open. -->
     <div class="lawdemo" id="lawdemo">
       <div class="lawsky" id="lawsky"></div>
-      <!-- The path is drawn from the same sine the disc flies, in script —
-           an approximated arc would be decoration, and decoration is the
-           one thing this section forbids. -->
       <svg class="lawarc" preserveAspectRatio="none" aria-hidden="true">
         <polyline id="lawpath" fill="none" stroke="rgba(242,237,227,.12)" stroke-width="1"/>
       </svg>
       <div class="lawticks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
       <div class="lawsun" id="lawsun"></div>
-      <div class="lawrow r1">
-        <span class="lawkey">Sun · linear</span>
-        <div class="lawtrack"><span class="lawdot sun" id="lawdot-sun"></span></div>
-      </div>
-      <div class="lawrow r2">
-        <span class="lawkey">Petal · eased</span>
-        <div class="lawtrack"><span class="lawdot petal" id="lawdot-petal"></span></div>
-      </div>
+      <div class="lawmark" id="lawmark" aria-hidden="true"></div>
       <div class="lawclock" id="lawclock">—</div>
+      <div class="lawtimes" id="lawtimes"></div>
     </div>
+    <div class="lawcities" id="lawcities" role="group" aria-label="Choose a city"></div>
 
     <div class="motion">
       <div><b>600ms</b><span>The sun — LINEAR. Radius, colour, glow. Never eases, never waits.</span></div>
-      <div><b>760ms</b><span>A petal — EASED on cubic-bezier(.22,1,.36,1). Fires only when a prayer is noted, never on a timer.</span></div>
-      <div><b>200ms</b><span>The splash stagger — petals open one at a time on launch, landing on the day's true state. 3.0s total.</span></div>
+      <div><b>11 stops</b><span>The sky's colour is read off the sun's real altitude, from the dead of night to the meridian.</span></div>
+      <div><b>&lt; 1 min</b><span>NOAA/Meeus on the device. Accurate to well under a minute, 1900–2100, anywhere on Earth.</span></div>
     </div>
 
     <p style="margin-top:34px">
-      What the animation must never do: auto-mark a prayer. Wilt, shrink or redden an unnoted
-      petal. Celebrate the fifth. Count anything. An unnoted prayer is an outlined dome and
-      nothing more.
+      Ten conventions are supported — MWL, ISNA, Egypt, Umm al-Qura, Karachi, Tehran, Jafari,
+      Diyanet, Dubai, Singapore — with Standard and Ḥanafī Asr. Above roughly 48° the sun may
+      never reach the Fajr or Isha angle in midsummer; when that happens the app fills the gap
+      by a stated rule and says on screen that it has estimated, rather than quietly inventing
+      a time.
     </p>
   </div>
 </section>
@@ -529,17 +537,17 @@
 <section id="brief">
   <div class="wrap">
     <p class="eyebrow"><span class="num">04</span> / The brief</p>
-    <h2>Make prayer easy to keep without making it something to score.</h2>
+    <h2>An easy way to keep track of your five.</h2>
 
     <div class="cols">
-      <div><h3>Purpose built</h3><p>Prayer times that are locally accurate, reminders on the user's own terms, and a quiet
-        private place to note five prayers a day — with no claim about anyone's standing.</p></div>
+      <div><h3>Purpose built</h3><p>Prayer times that are locally accurate wherever you are, reminders on your own terms,
+        and a quiet private place to note your five prayers a day.</p></div>
 
       <div><h3>The product answer</h3><p>A day is one flower. Note a prayer and its dome fills; the sun at the centre reports
-        what the sky is actually doing. The record is the reward.</p></div>
+        what the sky is actually doing. One glance tells you where you are in the day.</p></div>
 
-      <div><h3>What it refuses to do</h3><p>No streak, no percentage, no perfect day, no aggregate anywhere. Nothing is auto-marked.
-        A window that passed unnoted is simply unopened, and that is all.</p></div>
+      <div><h3>Today, and the month</h3><p>A timetable for today with every window and when it closes, and a month view where each
+        day is its own small flower — so the shape of a month is legible, not just today.</p></div>
 
       <div><h3>Privacy posture</h3><p>Records live on the device and work with no account and no network. Accounts are opt-in:
         sign in and your notes sync, encrypted in transit, readable only by you. Coordinates
@@ -549,9 +557,9 @@
         conventions, Standard and Ḥanafī Asr, and honest high-latitude rules that always say
         when they have estimated. No API key, works offline, anywhere on Earth.</p></div>
 
-      <div><h3>The line it holds</h3><p>The app cannot know whether a prayer happened, so it never says one did. No claim of
-        divine reward, spiritual standing or prayer validity — questions of practice go to a
-        qualified scholar, not to software.</p></div>
+      <div><h3>The line it holds</h3><p>The app knows where the sun is; it cannot know whether a prayer happened, so what you
+        note is yours to enter. Questions of practice go to a qualified scholar, not to
+        software.</p></div>
     </div>
   </div>
 </section>
@@ -708,39 +716,62 @@
   paint(0);
 })();
 
-/* ── 03 / the motion law, running ──────────────────────────────────────
-   One loop is one day, compressed to 18 seconds. The sun's progress
-   through it is the raw fraction of the loop — no easing anywhere in the
-   path, which is why it meets the nine ticks at nine evenly spaced
-   moments. The petal dot below runs the app's real curve,
-   cubic-bezier(.22,1,.36,1), over the identical interval: it leaves
-   late, overtakes, and arrives early. Watching them disagree is the
-   whole argument for keeping the two families apart.
+</script>
 
-   It only runs while it is on screen, and it does not run at all for a
-   person who has asked for reduced motion — a design brief that ignores
-   its own accessibility rule is not making its case. */
-(function motionLaw() {
-  var demo = document.getElementById('lawdemo');
-  if (!demo) return;
-  var sky   = document.getElementById('lawsky');
-  var sun   = document.getElementById('lawsun');
-  var dS    = document.getElementById('lawdot-sun');
-  var dP    = document.getElementById('lawdot-petal');
-  var clock = document.getElementById('lawclock');
+<!-- ── 03 / the world clock, running ─────────────────────────────────────
+     Real solar geometry, not an approximation: this pulls the app's own
+     solar.js, so the arc and the five times on screen are the same numbers
+     the app would show a person standing in that city right now. That is
+     the point of the section — the times are computed, not fetched, which
+     is why swapping the coordinates rebuilds the whole day.
 
-  var LOOP = 18000;                 /* one day */
-  var RISE = 0.20, SET = 0.76;      /* the same day the bloom rail uses */
+     One loop is one day, compressed to 20 seconds. The sun's progress
+     through it is the raw fraction of the loop: linear, always. It pauses
+     off screen, and for a person who has asked for reduced motion it holds
+     a single still frame at the real current minute instead of looping. -->
+<script type="module">
+import { solarDay, altitudeAt, fmtMinutes, minuteOf } from '../solar.js';
 
-  /* cubic-bezier(.22,1,.36,1) solved by bisection — close enough at
-     screen resolution, and it keeps the file dependency-free. */
-  function bez(t) {
-    function cx(u) { var v = 1 - u; return 3*v*v*u*0.22 + 3*v*u*u*0.36 + u*u*u; }
-    function cy(u) { var v = 1 - u; return 3*v*v*u*1.00 + 3*v*u*u*1.00 + u*u*u; }
-    var lo = 0, hi = 1, mid;
-    for (var i = 0; i < 24; i++) { mid = (lo + hi) / 2; if (cx(mid) < t) lo = mid; else hi = mid; }
-    return cy((lo + hi) / 2);
+const demo = document.getElementById('lawdemo');
+if (demo) {
+  const sky    = document.getElementById('lawsky');
+  const sun    = document.getElementById('lawsun');
+  const path   = document.getElementById('lawpath');
+  const marks  = document.getElementById('lawmark');
+  const clock  = document.getElementById('lawclock');
+  const times  = document.getElementById('lawtimes');
+  const cities = document.getElementById('lawcities');
+
+  /* Chosen to make the point rather than to be a gazetteer: near the
+     equator the arc barely changes all year; at 64° it barely sets. */
+  const CITIES = [
+    { name: 'Detroit',   lat:  42.3314, lon: -83.0458, zone: 'America/Detroit' },
+    { name: 'Mecca',     lat:  21.4225, lon:  39.8262, zone: 'Asia/Riyadh' },
+    { name: 'Karachi',   lat:  24.8607, lon:  67.0011, zone: 'Asia/Karachi' },
+    { name: 'London',    lat:  51.5074, lon:  -0.1278, zone: 'Europe/London' },
+    { name: 'Jakarta',   lat:  -6.2088, lon: 106.8456, zone: 'Asia/Jakarta' },
+    { name: 'Reykjavík', lat:  64.1466, lon: -21.9426, zone: 'Atlantic/Reykjavik' },
+  ];
+
+  /* Resolved per date rather than cached, so DST is right for each city. */
+  function offsetMin(zone, date) {
+    const parts = new Intl.DateTimeFormat('en-US', { timeZone: zone, timeZoneName: 'longOffset' })
+      .formatToParts(date);
+    const tzn = parts.find(p => p.type === 'timeZoneName');
+    const m = tzn && tzn.value.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+    if (!m) return 0;
+    return (m[1] === '-' ? -1 : 1) * (Number(m[2]) * 60 + Number(m[3] || 0));
   }
+
+  const H = 180;                 /* must match .lawsky height */
+  const LOOP = 20000;            /* one day, watchable */
+  const KEYS = ['fajr', 'sunrise', 'dhuhr', 'asr', 'maghrib', 'isha'];
+  const LABEL = { fajr: 'Fajr', sunrise: 'Sunrise', dhuhr: 'Dhuhr', asr: 'Asr', maghrib: 'Maghrib', isha: 'Isha' };
+
+  let city = CITIES[0], day = null, lastSky = '', raf = null;
+
+  const xAt = (p, w) => 40 + (w - 80) * p;
+  const yAt = alt => H - 10 - Math.max(0, alt) / Math.max(6, day.peakAlt) * (H - 46);
 
   function skyFor(alt, up) {
     if (alt > 26) return 'linear-gradient(180deg,#4E82AC,#9FBFD4 52%,#E4D6BE)';
@@ -751,67 +782,111 @@
     return 'linear-gradient(180deg,#04070E,#091120 60%,#0F1A26)';
   }
 
-  function hhmm(p) {
-    var m = Math.round(p * 1440) % 1440;
-    var h = Math.floor(m / 60), mm = String(m % 60).padStart(2, '0');
-    var ap = h < 12 ? 'am' : 'pm', h12 = h % 12 === 0 ? 12 : h % 12;
-    return h12 + ':' + mm + ' ' + ap;
+  function rebuild() {
+    const now = new Date();
+    day = solarDay(now, city.lat, city.lon, offsetMin(city.zone, now),
+                   { method: 'MWL', asrFactor: 1, highLatRule: 'middleOfNight' });
+    drawPath();
+    drawMarks();
+    drawTimes();
+    lastSky = '';
   }
 
-  /* x and y for a given fraction of the day. One function, used by both
-     the flying disc and the path it flies — so they cannot drift apart. */
-  var H = 180;   /* must match .lawsky height */
-  function xAt(p, w) { return 40 + (w - 80) * p; }
-  function yAt(alt)  { return H - 10 - Math.max(0, alt) / 64 * (H - 46); }
-  function altAt(p)  { return 64 * Math.sin(Math.PI * (p - RISE) / (SET - RISE)); }
-
-  var path = document.getElementById('lawpath');
   function drawPath() {
-    var w = demo.clientWidth, pts = [];
-    for (var i = 0; i <= 120; i++) {
-      var p = RISE + (SET - RISE) * (i / 120);
-      pts.push(xAt(p, w).toFixed(1) + ',' + yAt(altAt(p)).toFixed(1));
+    const w = demo.clientWidth, pts = [];
+    for (let i = 0; i <= 160; i++) {
+      const m = 1440 * (i / 160);
+      const alt = altitudeAt(m, day);
+      if (alt < 0) continue;
+      pts.push(xAt(m / 1440, w).toFixed(1) + ',' + yAt(alt).toFixed(1));
     }
     path.setAttribute('points', pts.join(' '));
   }
-  drawPath();
-  addEventListener('resize', drawPath);
 
-  var lastSky = '';
-  function frame(now) {
-    var p = (now % LOOP) / LOOP;                       /* linear. always. */
-    var w = demo.clientWidth;
-    var alt = altAt(p);
-    var up  = p < (RISE + SET) / 2;
+  function drawMarks() {
+    const w = demo.clientWidth;
+    marks.innerHTML = '';
+    KEYS.forEach(k => {
+      const m = day[k];
+      if (m == null || !isFinite(m)) return;
+      const x = xAt(m / 1440, w);
+      const tick = document.createElement('i');
+      tick.style.left = x + 'px';
+      marks.appendChild(tick);
+      if (k === 'sunrise') return;      /* six marks crowd; five prayers is the point */
+      const lab = document.createElement('b');
+      lab.style.left = x + 'px';
+      lab.textContent = LABEL[k];
+      marks.appendChild(lab);
+    });
+  }
 
-    var s = skyFor(alt, up);
-    if (s !== lastSky) { sky.style.background = s; lastSky = s; }
+  function drawTimes() {
+    times.innerHTML = '';
+    KEYS.filter(k => k !== 'sunrise').forEach(k => {
+      const m = day[k];
+      const span = document.createElement('span');
+      span.innerHTML = LABEL[k] + ' <b>' + (m == null ? '—' : fmtMinutes(m)) + '</b>';
+      times.appendChild(span);
+    });
+    if (day.adjusted) {
+      const note = document.createElement('span');
+      note.textContent = '· estimated by ' + day.adjusted;
+      times.appendChild(note);
+    }
+  }
 
-    sun.style.left = xAt(p, w) + 'px';
-    sun.style.top  = yAt(alt) + 'px';
-    sun.style.opacity = alt > -4 ? 1 : Math.max(0, (alt + 14) / 10);
-
-    dS.style.left = (p * 100) + '%';
-    dP.style.left = (bez(p) * 100) + '%';
-    clock.textContent = hhmm(p) + ' · ' + (alt > 0 ? '+' : '') + alt.toFixed(1) + '° · sun and petal, same clock';
-
+  function frame(t) {
+    const p = (t % LOOP) / LOOP;
+    paint(p * 1440);
     raf = requestAnimationFrame(frame);
   }
 
-  var raf = null;
-  var reduce = matchMedia('(prefers-reduced-motion: reduce)');
-  function start() { if (raf === null && !reduce.matches) raf = requestAnimationFrame(frame); }
-  function stop()  { if (raf !== null) { cancelAnimationFrame(raf); raf = null; } }
+  function paint(minute) {
+    const w = demo.clientWidth;
+    const alt = altitudeAt(minute, day);
+    const up = minute < day.transit;
 
-  if (reduce.matches) { frame(LOOP * 0.42); stop(); }   /* one honest midday frame */
+    const s = skyFor(alt, up);
+    if (s !== lastSky) { sky.style.background = s; lastSky = s; }
+
+    sun.style.left = xAt(minute / 1440, w) + 'px';
+    sun.style.top = yAt(alt) + 'px';
+    sun.style.opacity = alt > -4 ? 1 : Math.max(0, (alt + 14) / 10);
+
+    clock.textContent = city.name + ' — ' + fmtMinutes(Math.round(minute)) +
+                        ' · ' + (alt > 0 ? '+' : '') + alt.toFixed(1) + '°';
+  }
+
+  CITIES.forEach((c, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.textContent = c.name;
+    b.setAttribute('aria-pressed', String(i === 0));
+    b.addEventListener('click', () => {
+      city = c;
+      [...cities.children].forEach(el => el.setAttribute('aria-pressed', String(el === b)));
+      rebuild();
+      if (raf === null) paint(minuteOf(new Date()));
+    });
+    cities.appendChild(b);
+  });
+
+  rebuild();
+  addEventListener('resize', () => { drawPath(); drawMarks(); });
+
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)');
+  const start = () => { if (raf === null && !reduce.matches) raf = requestAnimationFrame(frame); };
+  const stop  = () => { if (raf !== null) { cancelAnimationFrame(raf); raf = null; } };
+
+  paint(minuteOf(new Date()));   /* one true frame before anything moves */
 
   if ('IntersectionObserver' in window) {
-    new IntersectionObserver(function (es) {
-      es[0].isIntersecting ? start() : stop();
-    }, { threshold: 0.15 }).observe(demo);
+    new IntersectionObserver(es => (es[0].isIntersecting ? start() : stop()), { threshold: 0.15 })
+      .observe(demo);
   } else { start(); }
-  document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
-})();
+  document.addEventListener('visibilitychange', () => (document.hidden ? stop() : start()));
+}
 </script>
 </body>
 </html>
