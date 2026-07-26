@@ -1,0 +1,38 @@
+rules_version = '2';
+// ══════════════════════════════════════════════════════════════════════
+//  GUL — Firestore Security Rules (additive block for pray-now-15f80)
+//
+//  Every user's garden is private: only the signed-in owner can read or
+//  write their own notes and settings. There is no public data and no
+//  cross-user access of any kind.
+//
+//  Deploy from the Firebase console → Firestore → Rules, or with:
+//    firebase deploy --only firestore:rules
+//
+//  If you are merging this into the existing ironcade rules file, paste
+//  the gulUsers block alongside the existing seasons/groups blocks and
+//  keep the closing "everything else is closed" catch-all last.
+// ══════════════════════════════════════════════════════════════════════
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    // ── GUL: per-user settings + daily prayer notes ──
+    //   gulUsers/{uid}                    { settings, updatedAt }
+    //   gulUsers/{uid}/days/{YYYY-MM-DD}  { p: {...}, u: millis }
+    match /gulUsers/{uid} {
+      allow read, write: if isOwner(uid);
+
+      match /days/{date} {
+        allow read, write: if isOwner(uid);
+      }
+    }
+
+    // everything else is closed
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

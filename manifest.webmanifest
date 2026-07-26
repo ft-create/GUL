@@ -1,0 +1,13 @@
+{
+  "name": "GUL — Pray with the sun",
+  "short_name": "GUL",
+  "description": "Prayer times where you are, and a quiet place to note your five daily prayers.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0A1014",
+  "theme_color": "#0A1014",
+  "icons": [
+    { "src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}
