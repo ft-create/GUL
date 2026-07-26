@@ -180,6 +180,37 @@ function toggleNote(key, prayer) {
   if (notes[key]) Sync.pushDay(key, notes[key].p, notes[key].u).catch(() => {});
 }
 
+/* ── The bloom ──────────────────────────────────────────────────────
+   One prayer noted, one petal opened, one flare. Fired only from a real
+   tap — never on load, never on a timer, never from a remote sync — so
+   the mark celebrates the act rather than the state. Marking a prayer
+   *off* is silent: taking a note back is a correction, not an event, and
+   an animation there would read as the app objecting.                    */
+function bloom(index) {
+  /* The class is removed again when the animation ends rather than left on the
+     element. Two reasons: a stale marker makes the DOM lie about what is
+     currently animating, and re-adding it is what restarts the animation on a
+     second tap — the reflow read below only helps if it was cleared first. */
+  const fire = (node, cls) => {
+    if (!node) return;
+    node.classList.remove(cls);
+    void node.offsetWidth;
+    node.classList.add(cls);
+    node.addEventListener('animationend', () => node.classList.remove(cls), { once: true });
+  };
+  fire(document.getElementById('flare'), 'on');
+  fire(petalEls[index], 'opened');
+}
+
+/* Note a prayer from the interface: record it, redraw, and — only when the
+   tap opened a petal rather than closed one — let the flower answer. */
+function notePrayer(key, prayer) {
+  const opening = !isNoted(key, prayer);
+  toggleNote(key, prayer);
+  renderAll();
+  if (opening) bloom(KEYS.indexOf(prayer));
+}
+
 /* Merge a remote day doc: newest write wins. */
 function mergeRemoteDay(key, remote) {
   const local = notes[key];
@@ -258,7 +289,7 @@ const pillEls = KEYS.map((k, i) => {
   b.type = 'button';
   b.className = 'pill';
   b.innerHTML = `<span class="glyph">○</span><span style="white-space:nowrap">${NAMES[i]}</span>`;
-  b.addEventListener('click', () => { toggleNote(todayKey(), k); renderAll(); });
+  b.addEventListener('click', () => notePrayer(todayKey(), k));
   el.pills.appendChild(b);
   return b;
 });
@@ -393,7 +424,7 @@ function drawNow(t, key) {
   const noted = isNoted(key, ki);
   el.markNow.textContent = noted ? `${last.name} noted` : `Note ${last.name}`;
   el.markNow.classList.toggle('noted', noted);
-  el.markNow.onclick = () => { toggleNote(key, ki); renderAll(); };
+  el.markNow.onclick = () => notePrayer(key, ki);
 
   pillEls.forEach((pe, i) => {
     const on = isNoted(key, KEYS[i]);
@@ -467,7 +498,7 @@ function drawTimetable() {
       b.type = 'button';
       b.className = 'tt-mark' + (on ? ' open' : '');
       b.innerHTML = `<span class="glyph">${on ? '●' : '○'}</span><span style="font-size:12px;white-space:nowrap">${on ? 'Prayed' : 'Not marked'}</span>`;
-      if (canMark) b.addEventListener('click', () => { toggleNote(key, w.key); renderAll(); });
+      if (canMark) b.addEventListener('click', () => notePrayer(key, w.key));
       else { b.disabled = true; b.style.opacity = .45; b.style.cursor = 'default'; }
       row.appendChild(b);
     }

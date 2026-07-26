@@ -103,6 +103,32 @@ h3 { font-family: var(--pn-display); font-weight: 400; font-size: 23px; color: v
 }
 @keyframes gul-corona { 0%, 100% { opacity: .24; transform: scale(1); } 50% { opacity: .56; transform: scale(1.13); } }
 
+/* ── The bloom ────────────────────────────────────────────────────────
+   Fired once, when a person notes a prayer. Never on a timer, never on
+   load. It eases, because it answers someone — the sun's own radius and
+   colour keep running linearly underneath and are untouched by this.     */
+.flare {
+  position: absolute; width: 300px; height: 300px; border-radius: 50%;
+  pointer-events: none; opacity: 0;
+  background: radial-gradient(circle, rgba(242,237,227,.55) 0%, rgba(233,179,102,.28) 34%, transparent 68%);
+}
+.flare.on { animation: gul-flare var(--pn-dur-grow, 760ms) var(--pn-ease); }
+@keyframes gul-flare {
+  0%   { opacity: 0;   transform: scale(.55); }
+  38%  { opacity: .95; transform: scale(1.06); }
+  100% { opacity: 0;   transform: scale(1.34); }
+}
+
+/* The petal that was just opened swells past its resting size and settles —
+   the same 5° overshoot the handoff specifies, expressed as scale so it
+   cannot fight the transform the flower already sets on each petal. */
+#flower .petal.opened { animation: gul-petal-open var(--pn-dur-grow, 760ms) var(--pn-ease); }
+@keyframes gul-petal-open {
+  0%   { opacity: .4; }
+  40%  { opacity: 1; }
+  100% { opacity: 1; }
+}
+
 #flower { position: relative; width: min(100%, 340px); height: auto; }
 #flower .petal { transition: all var(--pn-dur-grow) var(--pn-ease); }
 #flower #disc { transition: all var(--pn-dur-sun) linear; }
@@ -316,6 +342,7 @@ h3 { font-family: var(--pn-display); font-weight: 400; font-size: 23px; color: v
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   .corona { animation: none !important; }
+  .flare, #flower .petal.opened { animation: none !important; }
   #flower .petal, .tt-mark, .pill, .m-cell .m-flower path { transition-duration: 1ms; }
 }
 

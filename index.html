@@ -31,11 +31,15 @@
     <span class="brand-word">GUL</span>
     <span class="brand-ar" lang="ar">گُل</span>
   </a>
+  <!-- Settings is deliberately absent from this row for now. The section still
+       exists and is still reachable — the place button on Today ("Detroit ›")
+       opens it — but a person opening a prayer app is not looking for a
+       preferences screen, and giving it equal billing with Today made the nav
+       read as a settings app that happens to show prayer times. -->
   <nav class="links">
     <a href="#today">Today</a>
     <a href="#timetable">Timetable</a>
     <a href="#history">History</a>
-    <a href="#settings">Settings</a>
   </nav>
   <button class="auth-btn" id="auth-btn" type="button">Sign in</button>
 </header>
@@ -47,6 +51,13 @@
     <div class="today-flower">
       <div class="flower-stage">
         <div class="corona" id="corona"></div>
+        <!-- The flare is a separate layer on purpose. The disc's radius and
+             colour carry information — they are the real sun on the real solar
+             clock, and they move linearly because the sun does not accelerate
+             for anybody. This layer is the app answering a person, so it eases.
+             Keeping them apart is what lets the mark celebrate without ever
+             lying about where the sun is. -->
+        <div class="flare" id="flare" aria-hidden="true"></div>
         <svg id="flower" viewBox="0 0 64 64" width="300" height="300" role="img" aria-label="Prayer flower" style="overflow: visible;">
           <g id="petals"></g>
           <circle id="disc" cx="32" cy="32" r="7.4" fill="#E9B366"/>
