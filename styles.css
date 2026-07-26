@@ -1,15 +1,15 @@
-/* GUL — website styles, built on the "Pray Now" token set.
-   Motion contract: solar moves linear 600ms; human motion eases
-   on cubic-bezier(.22,1,.36,1). Transform and opacity only. */
+/* GUL — website styles, built on the Gul token set (brand v2: the petal
+   is the dome). Motion contract: the sun moves linear 600ms; a petal
+   answers a person, eased 760ms on cubic-bezier(.22,1,.36,1). */
 
 :root {
-  --pn-void:        #04070E;
-  --pn-page:        #0A1014;
-  --pn-surface:     #0C1518;
-  --pn-card:        #101A1D;
-  --pn-line:        #1F3034;
-  --pn-line-soft:   #1B2A2D;
-  --pn-line-strong: #2E3D42;
+  --pn-void:        #030507;
+  --pn-page:        #05080A;
+  --pn-surface:     #0A0F0E;
+  --pn-card:        #0E1513;
+  --pn-line:        #1C2723;
+  --pn-line-soft:   #16211E;
+  --pn-line-strong: #2A3630;
 
   --pn-sun:         #E9B366;
   --pn-sun-high:    #FFF7E6;
@@ -25,18 +25,18 @@
   --pn-wilt-line:   #6B3B30;
   --pn-wilt-text:   #E3C0B4;
 
-  --pn-ink:         #F7F1E6;
-  --pn-ink-2:       #E8DFD1;
-  --pn-ink-3:       #C9BCA8;
-  --pn-muted:       #93877A;
-  --pn-label:       #6C8078;
-  --pn-faint:       #4E5E60;
+  --pn-ink:         #F7F3EA;
+  --pn-ink-2:       #F2EDE3;
+  --pn-ink-3:       #C9C6BE;
+  --pn-muted:       #8E8B82;
+  --pn-label:       #6E7B74;
+  --pn-faint:       #4E5E58;
 
   --pn-display: 'Instrument Serif', Georgia, serif;
   --pn-ui:      'DM Sans', system-ui, sans-serif;
   --pn-arabic:  'Amiri', serif;
 
-  --pn-r-card: 28px;
+  --pn-r-card: 24px;
   --pn-r-panel: 24px;
   --pn-r-well: 16px;
   --pn-r-pill: 999px;
@@ -44,7 +44,7 @@
   --pn-ease: cubic-bezier(.22, 1, .36, 1);
   --pn-dur-tap: 180ms;
   --pn-dur-sun: 600ms;
-  --pn-dur-grow: 700ms;
+  --pn-dur-grow: 760ms;
   --pn-dur-heal: 1000ms;
   --pn-dur-flare: 620ms;
 }
@@ -104,9 +104,8 @@ h3 { font-family: var(--pn-display); font-weight: 400; font-size: 23px; color: v
 @keyframes gul-corona { 0%, 100% { opacity: .24; transform: scale(1); } 50% { opacity: .56; transform: scale(1.13); } }
 
 #flower { position: relative; width: min(100%, 340px); height: auto; }
-#flower #dome { transition: opacity 1600ms linear; }
 #flower .petal { transition: all var(--pn-dur-grow) var(--pn-ease); }
-#flower #disc-day, #flower #disc-night { transition: all var(--pn-dur-sun) linear; }
+#flower #disc { transition: all var(--pn-dur-sun) linear; }
 
 .tips { position: absolute; inset: 0; pointer-events: none; }
 .tip {
