@@ -4,9 +4,9 @@
 
 import {
   solarDay, altitudeAt, shadowRatioAt, windows, fmtMinutes, METHODS,
-} from './solar.js?v=15';
-import { QUICK, searchCities } from './cities.js?v=15';
-import { Sync } from './firebase.js?v=15';
+} from './solar.js?v=16';
+import { QUICK, searchCities } from './cities.js?v=16';
+import { Sync } from './firebase.js?v=16';
 /* ── Why every internal import carries ?v= ───────────────────────────────
    index.html versions styles.css and app.js, but a module graph is invisible
    to it: app.js pulls solar.js, cities.js and firebase.js by bare path, so a
@@ -262,7 +262,7 @@ const el = {
   greg: $('greg-date'), hijri: $('hijri-date'), placeBtn: $('place-btn'),
   nowName: $('now-name'), nowTime: $('now-time'), nextLabel: $('next-label'),
   qiblaLine: $('qibla-line'), syncLine: $('sync-line'),
-  markNow: $('mark-now'), pills: $('pills'),
+  markNow: $('mark-now'), dayTable: $('day-table'),
   polarNote: $('polar-note'), adjustedNote: $('adjusted-note'),
   ap: { sky: $('ap-sky'), shaft: $('ap-shaft'), sun: $('ap-sun'), ground: $('ap-ground'),
         shadow: $('ap-shadow'), gnomon: $('ap-gnomon'), frame: document.querySelector('.aperture-frame'),
@@ -295,15 +295,61 @@ const tipEls = KEYS.map(k => {
   el.tips.appendChild(d);
   return d;
 });
-const pillEls = KEYS.map((k, i) => {
+/* ── The day table ───────────────────────────────────────────────────────
+   Five rows, and the whole row is the button — the reasoning for that is in
+   styles.css next to .dt-row. Built once here, repainted by drawDayTable
+   below, because the times and the sun discs change with the day and the
+   place while the five rows themselves never do.
+
+   The disc is the same one the timetable draws: radius and colour from the
+   sun's real altitude at that prayer's minute. That is deliberate — it makes
+   this table the flower's own data in a second form rather than a list with
+   dots on it. */
+const dayRowEls = KEYS.map((k, i) => {
   const b = document.createElement('button');
   b.type = 'button';
-  b.className = 'pill';
-  b.innerHTML = `<span class="glyph">○</span><span style="white-space:nowrap">${NAMES[i]}</span>`;
+  b.className = 'dt-row';
+  b.setAttribute('aria-pressed', 'false');
+  b.innerHTML =
+    '<span class="dt-disc" aria-hidden="true">' +
+      '<svg viewBox="-30 -30 60 60" width="24" height="24">' +
+        '<circle cx="0" cy="0" r="5" fill="#2A3630"></circle>' +
+      '</svg></span>' +
+    `<span class="dt-name">${NAMES[i]}</span>` +
+    '<span class="dt-time">—</span>' +
+    '<span class="dt-state" aria-hidden="true">' +
+      '<span class="dt-ring"></span><span class="dt-word">Noted</span>' +
+    '</span>';
   b.addEventListener('click', () => notePrayer(todayKey(), k));
-  el.pills.appendChild(b);
+  el.dayTable.appendChild(b);
   return b;
 });
+
+function drawDayTable(key, day, last) {
+  const ws = windows(day, dayFor(shiftKey(key, 1)).fajr);
+  dayRowEls.forEach((row, i) => {
+    /* Matched by key, not by index. windows() happens to return the five in
+       prayer order today, but the rows are built from KEYS and a silent
+       re-order would put Isha's time on the Fajr row — wrong in a way nobody
+       would notice until it mattered. */
+    const w = ws.find(x => x.key === KEYS[i]);
+    if (!w) return;
+    const on = isNoted(key, KEYS[i]);
+    const a = altitudeAt(w.from, day);
+    const lift = Math.max(0, Math.min(1, (a + 8) / Math.max(6, day.peakAlt)));
+    const disc = row.querySelector('circle');
+    disc.setAttribute('r', (4.5 + lift * 4.5).toFixed(1));
+    disc.setAttribute('fill', sunColour(a, w.from, day));
+    row.querySelector('.dt-time').textContent = fmtMinutes(w.from);
+    row.classList.toggle('on', on);
+    row.classList.toggle('now', !!last && last.key === w.key);
+    row.setAttribute('aria-pressed', on ? 'true' : 'false');
+    /* The visible row is name + time + a ring; spoken aloud that ring means
+       nothing, so the state goes in the label. */
+    row.setAttribute('aria-label',
+      `${NAMES[i]} at ${fmtMinutes(w.from)} — ${on ? 'noted' : 'not noted'}`);
+  });
+}
 
 /* ── The flower ──────────────────────────────────────────────────── */
 function drawFlower() {
@@ -485,7 +531,7 @@ function lastAndNext(t, key) {
 }
 
 function drawNow(t, key) {
-  const { last, next } = lastAndNext(t, key);
+  const { day, last, next } = lastAndNext(t, key);
   const until = Math.max(0, Math.round(next.from - t));
   el.nowName.textContent = last.name;
   el.nowTime.textContent = fmtMinutes(last.from);
@@ -500,11 +546,7 @@ function drawNow(t, key) {
   el.markNow.classList.toggle('noted', noted);
   el.markNow.onclick = () => notePrayer(key, ki);
 
-  pillEls.forEach((pe, i) => {
-    const on = isNoted(key, KEYS[i]);
-    pe.classList.toggle('open', on);
-    pe.querySelector('.glyph').textContent = on ? '●' : '○';
-  });
+  drawDayTable(key, day, last);
 }
 
 /* ── Header dates & place ────────────────────────────────────────── */
