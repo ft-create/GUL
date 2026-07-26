@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gul — Pray with the sun</title>
+<meta name="description" content="Prayer times where you are, and a quiet place to note your five daily prayers. Accounts optional — your notes sync across devices when you sign in.">
+<meta name="theme-color" content="#0A1014">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GUL">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Amiri:wght@400&display=swap">
+<link rel="stylesheet" href="./styles.css?v=2">
+<style>.auth-overlay[hidden]{display:none}</style>
+<script>
+  if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+    window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+  }
+</script>
+</head>
+<body>
+
+<header class="nav">
+  <a class="brand" href="#today">
+    <img src="./gul-mark.svg" alt="Gul" width="34" height="34">
+    <span class="brand-word">GUL</span>
+    <span class="brand-ar" lang="ar">گُل</span>
+  </a>
+  <nav class="links">
+    <a href="#today">Today</a>
+    <a href="#timetable">Timetable</a>
+    <a href="#history">History</a>
+    <a href="#settings">Settings</a>
+  </nav>
+  <button class="auth-btn" id="auth-btn" type="button">Sign in</button>
+</header>
+
+<main>
+
+  <!-- ── Today ─────────────────────────────────────────────────────── -->
+  <section id="today" class="today">
+    <div class="today-flower">
+      <div class="flower-stage">
+        <div class="corona" id="corona"></div>
+        <svg id="flower" viewBox="-6 -6 76 76" width="300" height="300" role="img" aria-label="Prayer flower" style="overflow: visible;">
+          <g id="petals"></g>
+          <g transform="translate(32 32)">
+            <path id="dome" fill="none" stroke="#F2EDE3" stroke-width="1.5" stroke-linejoin="round"
+              d="M-19 24.75 C-27 12.75 -24 -3.25 -12 -13.25 C-7 -17.25 -3 -20.25 0 -24.75 C3 -20.25 7 -17.25 12 -13.25 C24 -3.25 27 12.75 19 24.75 Z"/>
+            <circle id="disc-day" cx="0" cy="0" r="9.8" fill="#E9B366"/>
+            <mask id="gul-moonmask" maskUnits="userSpaceOnUse" x="-20" y="-20" width="40" height="40">
+              <circle cx="0" cy="0" r="8.6" fill="#fff"/>
+              <circle cx="5.6" cy="-3.8" r="8.6" fill="#000"/>
+            </mask>
+            <circle id="disc-night" cx="0" cy="0" r="8.6" fill="#E6ECF2" mask="url(#gul-moonmask)" style="display:none"/>
+          </g>
+        </svg>
+        <div class="tips" id="tips"></div>
+      </div>
+    </div>
+
+    <div class="today-panel">
+      <div class="date-line">
+        <span id="greg-date">—</span>
+        <span class="dot">·</span>
+        <span id="hijri-date">—</span>
+      </div>
+      <button class="place" id="place-btn" type="button" title="Change place">— ›</button>
+
+      <div class="now-block">
+        <div class="kicker">Now</div>
+        <div class="now-name" id="now-name">—</div>
+        <div class="now-time" id="now-time">—</div>
+        <div class="next-label" id="next-label">—</div>
+        <div class="qibla-line" id="qibla-line">—</div>
+      </div>
+
+      <button class="primary" id="mark-now" type="button">—</button>
+      <div class="pills" id="pills"></div>
+
+      <p class="quiet">A private reflection, not a score. Each prayer you note opens a petal. Nothing dims because of a prayer you did not mark.</p>
+      <p class="sync-line" id="sync-line"></p>
+      <p class="notice" id="polar-note" hidden>This place is in polar day or night today, so times are shown for the nearest workable latitude — not the literal sky above you.</p>
+      <p class="notice" id="adjusted-note" hidden>Twilight does not reach the chosen angle here today; Fajr and Isha are estimated by the high-latitude rule in Settings.</p>
+    </div>
+
+    <div class="today-aperture">
+      <div class="aperture-frame">
+        <div class="ap-layer" id="ap-sky"></div>
+        <div class="ap-layer" id="ap-shaft"></div>
+        <div class="ap-layer" id="ap-sun"></div>
+        <div class="ap-layer" id="ap-ground"></div>
+        <div class="ap-layer" id="ap-shadow"></div>
+        <div class="ap-layer" id="ap-gnomon"></div>
+      </div>
+      <div class="ap-readout">
+        <div class="ap-phase" id="ap-phase">—</div>
+        <div class="ap-meta" id="ap-meta">—</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Verse ─────────────────────────────────────────────────────── -->
+  <section class="verse">
+    <div class="verse-ar" dir="rtl" lang="ar">وَالَّذِينَ هُمْ عَلَىٰ صَلَوَاتِهِمْ يُحَافِظُونَ</div>
+    <div class="verse-en">“And they who carefully maintain their prayers — those are the inheritors, who will inherit Paradise.”</div>
+    <div class="verse-ref">Al-Mu’minūn 23:9–11</div>
+  </section>
+
+  <!-- ── Timetable ─────────────────────────────────────────────────── -->
+  <section id="timetable" class="sheet">
+    <div class="sheet-head">
+      <h2>Timetable</h2>
+      <div class="day-nav">
+        <button id="day-prev" type="button">‹ Previous day</button>
+        <button id="day-today" type="button">Today</button>
+        <button id="day-next" type="button">Next day ›</button>
+      </div>
+      <div class="sheet-sub" id="tt-date">—</div>
+    </div>
+    <div class="rows" id="tt-rows"></div>
+    <p class="quiet">These are your own notes. Gul cannot verify a prayer and does not treat this as a record of worship performed.</p>
+  </section>
+
+  <!-- ── History ───────────────────────────────────────────────────── -->
+  <section id="history" class="sheet">
+    <div class="sheet-head">
+      <h2>History</h2>
+      <div class="sheet-sub">Your own records. Only you can see this — notes stay on this device unless you sign in to sync them.</div>
+    </div>
+    <div class="info-card">
+      <span class="i-dot">i</span>
+      <span>Each day is the flower you grew that day. There are no perfect days here and no failed ones.</span>
+    </div>
+    <div class="month-bar">
+      <div class="month-title" id="month-title">—</div>
+      <div class="day-nav">
+        <button id="month-prev" type="button">‹</button>
+        <button id="month-next" type="button">›</button>
+      </div>
+    </div>
+    <div class="month-grid" id="month-grid"></div>
+    <p class="quiet">A day with four petals is a day you noted four prayers. Nothing is added up, ranked, or compared — the calendar is the record and the record is the reward.</p>
+  </section>
+
+  <!-- ── Settings ──────────────────────────────────────────────────── -->
+  <section id="settings" class="sheet">
+    <div class="sheet-head"><h2>Settings</h2></div>
+
+    <h3>Account</h3>
+    <div class="place-card" id="account-card">
+      <div class="place-name" id="account-name">Local only</div>
+      <div class="place-meta" id="account-meta">Your notes live on this device. Create an account to keep them safe and see them on any device.</div>
+      <div class="account-actions">
+        <button class="outline-btn" id="account-action" type="button">Sign in or create an account</button>
+      </div>
+    </div>
+
+    <h3>Place</h3>
+    <div class="place-card">
+      <div class="place-name" id="place-name">—</div>
+      <div class="place-meta" id="place-meta">—</div>
+      <div class="place-meta" id="place-qibla">—</div>
+    </div>
+    <div class="search-wrap">
+      <input class="place-search" id="place-search" type="text" autocomplete="off"
+             placeholder="Search any city — Karachi, Toronto, Nairobi…" aria-label="Search for a city">
+      <div class="search-results" id="search-results"></div>
+    </div>
+    <div class="city-row" id="city-row"></div>
+    <button class="outline-btn" id="geo-btn" type="button">Use my precise location</button>
+
+    <h3>Prayer settings</h3>
+    <div class="info-card">
+      <span class="i-dot">i</span>
+      <span>Gul does not give religious rulings and does not judge whether a prayer was valid. For questions of practice, ask a qualified scholar or your local imam.</span>
+    </div>
+
+    <div class="field-label">Calculation method</div>
+    <div class="method-list" id="method-list"></div>
+
+    <div class="field-label">Asr</div>
+    <div class="asr-toggle" id="asr-toggle">
+      <button type="button" data-f="1">Standard</button>
+      <button type="button" data-f="2">Ḥanafī</button>
+    </div>
+    <p class="quiet" id="asr-note">Standard: Asr begins when a shadow equals its object — Shāfiʿī, Mālikī, Ḥanbalī.</p>
+
+    <div class="field-label">High latitudes — when twilight never comes</div>
+    <div class="asr-toggle three" id="hl-toggle">
+      <button type="button" data-r="middleOfNight">Middle of night</button>
+      <button type="button" data-r="seventhOfNight">Seventh of night</button>
+      <button type="button" data-r="twilightAngle">Twilight angle</button>
+    </div>
+    <p class="quiet">In far-northern or far-southern summers the sun may never reach the Fajr or Isha angle. This rule estimates those two prayers for that day — Gul always tells you when it has.</p>
+  </section>
+
+</main>
+
+<footer class="foot">
+  <img src="./gul-mark.svg" alt="" width="26" height="26">
+  <span>GUL — Pray with the sun.</span>
+  <span class="foot-note">Times are computed astronomically in your browser. Notes are encrypted in transit and visible only to you.</span>
+</footer>
+
+<!-- ── Auth modal ──────────────────────────────────────────────────── -->
+<div class="auth-overlay" id="auth-overlay" hidden>
+  <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+    <img src="./gul-mark.svg" alt="" width="44" height="44">
+    <div class="auth-title" id="auth-title">Your garden, everywhere</div>
+    <p class="auth-sub">An account keeps your notes safe and shows the same flower on every device. Email and a password is all it takes.</p>
+    <input class="auth-input" id="auth-email" type="email" autocomplete="email" placeholder="Email">
+    <input class="auth-input" id="auth-pass" type="password" autocomplete="current-password" placeholder="Password (6+ characters)">
+    <div class="auth-error" id="auth-error"></div>
+    <button class="primary" id="auth-signin" type="button">Sign in</button>
+    <button class="outline-btn wide" id="auth-signup" type="button">Create an account</button>
+    <button class="auth-link" id="auth-reset" type="button">Forgot password?</button>
+    <button class="auth-link" id="auth-close" type="button">Not now — stay local</button>
+  </div>
+</div>
+
+<script type="module" src="./app.js"></script>
+</body>
+</html>
