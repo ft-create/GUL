@@ -8,21 +8,18 @@ import {
 import { QUICK, searchCities } from './cities.js';
 import { Sync } from './firebase.js';
 
-/* ── Geometry: the petal, exactly as drawn in the Gul design ─────── */
-function petalPath(L, wr, notch, shoulder, inset) {
-  const w = L * wr, m = -L * shoulder, r = x => Math.round(x * 100) / 100;
-  const y = v => r(v - inset);
-  return [
-    `M0 ${y(0)}`,
-    `C${r(-0.6 * w)} ${y(-0.145 * L)} ${r(-w)} ${y(m + 0.22 * L)} ${r(-w)} ${y(m)}`,
-    `C${r(-w)} ${y(-L + 0.22 * L)} ${r(-0.66 * w)} ${y(-L + 0.084 * L)} ${r(-0.2 * w)} ${y(-L + 0.032 * L)}`,
-    `C${r(-0.11 * w)} ${y(-L + 0.022 * L)} ${r(-0.04 * w)} ${y(-L + 0.04 * L)} 0 ${y(-L + notch * L)}`,
-    `C${r(0.04 * w)} ${y(-L + 0.04 * L)} ${r(0.11 * w)} ${y(-L + 0.022 * L)} ${r(0.2 * w)} ${y(-L + 0.032 * L)}`,
-    `C${r(0.66 * w)} ${y(-L + 0.084 * L)} ${r(w)} ${y(-L + 0.22 * L)} ${r(w)} ${y(m)}`,
-    `C${r(w)} ${y(m + 0.22 * L)} ${r(0.6 * w)} ${y(-0.145 * L)} 0 ${y(0)} Z`,
-  ].join(' ');
+/* ── Geometry: the petal IS the dome — the dome silhouette, stretched.
+   Flat base, haunches swelling past the base, a point at the top.
+   Construction: base on r=5.6, haunches widest on r=14, apex on r=27.6. ── */
+function domePath(L, base, haunch) {
+  const r = x => Math.round(x * 100) / 100;
+  return `M${r(-base)} 0 C${r(-haunch)} ${r(-0.22 * L)} ${r(-haunch)} ${r(-0.44 * L)} ${r(-haunch * 0.88)} ${r(-0.6 * L)}` +
+    ` C${r(-haunch * 0.66)} ${r(-0.76 * L)} ${r(-haunch * 0.3)} ${r(-0.88 * L)} 0 ${r(-L)}` +
+    ` C${r(haunch * 0.3)} ${r(-0.88 * L)} ${r(haunch * 0.66)} ${r(-0.76 * L)} ${r(haunch * 0.88)} ${r(-0.6 * L)}` +
+    ` C${r(haunch)} ${r(-0.44 * L)} ${r(haunch)} ${r(-0.22 * L)} ${r(base)} 0 Z`;
 }
-const PETAL = petalPath(21, 0.36, 0, 0.58, 3.5);
+const PETAL = domePath(22, 5.2, 8);
+const NIGHT_DISC = '#9AA6AE';   // Isha to first light: a grey disc, never a crescent.
 
 /* ── The sun's colour ramp — eleven stops by altitude ────────────── */
 const RAMP = [
@@ -218,7 +215,7 @@ function compass16(deg) {
 /* ── DOM ─────────────────────────────────────────────────────────── */
 const $ = id => document.getElementById(id);
 const el = {
-  petals: $('petals'), dome: $('dome'), discDay: $('disc-day'), discNight: $('disc-night'),
+  petals: $('petals'), disc: $('disc'),
   corona: $('corona'), tips: $('tips'),
   greg: $('greg-date'), hijri: $('hijri-date'), placeBtn: $('place-btn'),
   nowName: $('now-name'), nowTime: $('now-time'), nextLabel: $('next-label'),
@@ -244,7 +241,7 @@ const petalEls = KEYS.map((k, i) => {
   const p = document.createElementNS(SVGNS, 'path');
   p.setAttribute('d', PETAL);
   p.setAttribute('class', 'petal');
-  p.style.transform = `translate(32px,32px) rotate(${i * 72}deg) scale(0.84)`;
+  p.style.transform = `translate(32px,32px) rotate(${i * 72}deg) translate(0px,-5.6px)`;
   p.style.transformOrigin = '0 0';
   el.petals.appendChild(p);
   return p;
@@ -284,32 +281,29 @@ function drawFlower() {
     pe.setAttribute('fill', noted[i] ? '#F2EDE3' : 'none');
     pe.setAttribute('stroke', noted[i] ? 'none' : '#F2EDE3');
     pe.setAttribute('stroke-width', noted[i] ? '0' : '1.1');
-    pe.setAttribute('opacity', noted[i] ? '1' : '0.42');
+    pe.setAttribute('opacity', noted[i] ? '1' : '0.4');
   });
-  el.dome.style.opacity = 0.34 + count * 0.09;
 
-  const discR = night ? 8.6 : 7.4 + lift * 4.2;
-  const glowPx = night ? 14 : 8 + lift * 22;
-  const glowCol = night ? 'rgba(214,226,240,.55)' : fill;
-  el.discDay.style.display = night ? 'none' : '';
-  el.discNight.style.display = night ? '' : 'none';
-  const disc = night ? el.discNight : el.discDay;
-  disc.setAttribute('r', discR.toFixed(2));
-  disc.setAttribute('fill', night ? '#E6ECF2' : fill);
-  disc.style.filter = `drop-shadow(0 0 ${glowPx}px ${glowCol})`;
+  /* The sun: radius, colour and glow follow its real altitude — LINEAR 600ms.
+     From Isha to first light the same circle turns grey. Never a crescent. */
+  const discR = night ? 7.4 : 7.4 + lift * 3.4;
+  const glowPx = night ? 5 : 3 + lift * 7;
+  const discFill = night ? NIGHT_DISC : fill;
+  el.disc.setAttribute('r', discR.toFixed(2));
+  el.disc.setAttribute('fill', discFill);
+  el.disc.style.filter = `drop-shadow(0 0 ${glowPx}px ${discFill})`;
 
   const coronaSize = Math.round(140 + lift * 150);
   el.corona.style.width = el.corona.style.height = coronaSize + 'px';
-  el.corona.style.background = `radial-gradient(circle, ${night ? 'rgba(198,214,236,.16)' : fillSoft} 0%, transparent 66%)`;
+  el.corona.style.background = `radial-gradient(circle, ${night ? 'rgba(154,166,174,.14)' : fillSoft} 0%, transparent 66%)`;
   el.corona.style.opacity = 0.3 + lift * 0.6;
 
-  // Petal labels around the mark. ViewBox is -6 -6 76 76 → 38 px-units
-  // across half the box; centre stays at 50%.
+  // Petal labels around the mark. Apexes reach r=27.6 from the centre.
   const svg = $('flower');
   const px = svg.clientWidth || 300;
-  const U = px / 76;
-  const Rside = Math.round(Math.max((21 + 3.5) * 0.84, 27) * U + 18);
-  const Rtop = Math.round(Math.max((21 + 3.5) * 0.84, 24.75) * U + 18);
+  const U = px / 64;
+  const Rside = Math.round(27.6 * U + 16);
+  const Rtop = Math.round(27.6 * U + 16);
   el.tips.style.width = el.tips.style.height = px + 'px';
   tipEls.forEach((te, i) => {
     const a = (i * 72 - 90) * Math.PI / 180;
@@ -489,9 +483,9 @@ let monthOffset = 0; // 0 = current month
 
 function miniFlower(n, size) {
   const petals = KEYS.map((_, i) =>
-    `<g transform="rotate(${i * 72})"><path d="${PETAL}" fill="#F2EDE3" opacity="${i < n ? 0.95 : 0.1}"></path></g>`).join('');
+    `<g transform="rotate(${i * 72}) translate(0,-5.6)"><path d="${PETAL}" fill="#F2EDE3" opacity="${i < n ? 0.95 : 0.1}"></path></g>`).join('');
   return `<svg class="m-flower" viewBox="0 0 64 64" width="${size}" height="${size}" role="img" aria-label="${n} of five noted" style="overflow:visible">
-    <g transform="translate(32 32) scale(.84)">${petals}</g>
+    <g transform="translate(32 32)">${petals}</g>
     <circle cx="32" cy="32" r="${n > 0 ? 5 : 3.4}" fill="${n > 0 ? SUN : '#1E2A24'}"></circle></svg>`;
 }
 
@@ -736,3 +730,30 @@ renderAll();
 setInterval(tick, 20000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) tick(); });
 window.addEventListener('resize', () => drawFlower());
+
+/* ── The launch splash: nothing but the sun, then the day's noted
+   petals open one at a time — 200ms apart, 760ms each, landing on the
+   true state. It never marks anything; it only reveals what you marked.
+   Reduced motion jumps straight to the end state. ─────────────────── */
+(function splash() {
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const key = todayKey();
+  const notedIdx = KEYS.map((k, i) => (isNoted(key, k) ? i : -1)).filter(i => i >= 0);
+  if (!notedIdx.length) return;
+  petalEls.forEach(pe => {
+    pe.style.transition = 'none';
+    pe.setAttribute('fill', 'none');
+    pe.setAttribute('stroke', '#F2EDE3');
+    pe.setAttribute('stroke-width', '1.1');
+    pe.setAttribute('opacity', '0.4');
+  });
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    petalEls.forEach(pe => { pe.style.transition = ''; });
+    notedIdx.forEach((pi, k) => setTimeout(() => {
+      petalEls[pi].setAttribute('fill', '#F2EDE3');
+      petalEls[pi].setAttribute('stroke', 'none');
+      petalEls[pi].setAttribute('stroke-width', '0');
+      petalEls[pi].setAttribute('opacity', '1');
+    }, 240 + k * 200));
+  }));
+})();
