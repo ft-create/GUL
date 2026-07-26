@@ -1,6 +1,9 @@
 /* GUL — offline shell. Cache-first for the app's own files,
    network-first for navigations; the cloud syncs when it can. */
-const CACHE = 'gul-web-v3';
+/* Bump this on every deploy that changes a shell asset. The install
+   handler precaches SHELL under this name, so a stale name means a
+   returning visitor keeps the old app even after a successful deploy. */
+const CACHE = 'gul-web-v5';
 const SHELL = [
   './', './index.html', './styles.css', './app.js', './firebase.js',
   './cities.js', './solar.js', './favicon.svg', './gul-mark.svg',

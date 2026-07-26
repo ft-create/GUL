@@ -15,8 +15,76 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Amiri:wght@400&display=swap">
-<link rel="stylesheet" href="./styles.css?v=3">
+<link rel="stylesheet" href="./styles.css?v=5">
 <style>.auth-overlay[hidden]{display:none}</style>
+
+<!-- ── Private preview gate ────────────────────────────────────────────
+     This is a door sign, not a lock. It runs in the browser and the key's
+     hash ships in the page, so anyone determined can walk past it. It is
+     here to keep the unfinished app to one person while it is unfinished.
+     What actually protects the notes is the Firestore rules file — that
+     runs on Google's side and cannot be read around. Do not let this gate
+     grow into something the data's safety depends on. -->
+<style>
+  html.gul-locked { overflow: hidden; }
+  html.gul-locked body > header,
+  html.gul-locked body > main,
+  html.gul-locked body > footer,
+  html.gul-locked body > .auth-overlay { visibility: hidden; }
+  #gul-gate {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 26px; padding: 32px;
+    background: #05080A; color: #F2EDE3;
+    font-family: 'DM Sans', system-ui, sans-serif;
+  }
+  #gul-gate[hidden] { display: none; }
+  .gul-gate-word {
+    font-family: 'Instrument Serif', Georgia, serif;
+    font-size: 30px; letter-spacing: .14em; margin-top: 12px;
+  }
+  .gul-gate-sub { font-size: 13.5px; opacity: .58; letter-spacing: .02em; text-align: center; max-width: 24ch; }
+  .gul-dots { display: flex; gap: 14px; margin: 2px 0 4px; }
+  .gul-dot {
+    width: 12px; height: 12px; border-radius: 50%;
+    border: 1px solid rgba(242,237,227,.34); background: transparent;
+    transition: background .28s cubic-bezier(.22,1,.36,1),
+                border-color .28s cubic-bezier(.22,1,.36,1),
+                transform .28s cubic-bezier(.22,1,.36,1);
+  }
+  .gul-dot.on { background: #7CD9A6; border-color: #7CD9A6; transform: scale(1.18); }
+  .gul-keys { display: grid; grid-template-columns: repeat(3, 74px); gap: 14px; }
+  .gul-key {
+    height: 74px; border-radius: 50%; cursor: pointer;
+    border: 1px solid rgba(242,237,227,.16); background: rgba(242,237,227,.03);
+    color: #F2EDE3; font: inherit; font-size: 21px; letter-spacing: .02em;
+    transition: background .18s ease, border-color .18s ease;
+  }
+  .gul-key:hover { background: rgba(242,237,227,.09); border-color: rgba(242,237,227,.3); }
+  .gul-key:active { background: rgba(242,237,227,.16); }
+  .gul-key.ghost { border: 0; background: none; cursor: default; }
+  .gul-key.wide { font-size: 13px; letter-spacing: .06em; opacity: .62; }
+  .gul-gate-msg { font-size: 12.5px; letter-spacing: .06em; text-transform: uppercase; min-height: 1em; color: #C98B6B; }
+  @keyframes gul-gate-shake {
+    0%,100% { transform: translateX(0); }
+    20% { transform: translateX(-7px); } 40% { transform: translateX(6px); }
+    60% { transform: translateX(-4px); } 80% { transform: translateX(3px); }
+  }
+  .gul-shake { animation: gul-gate-shake .42s ease; }
+  @media (prefers-reduced-motion: reduce) {
+    .gul-shake { animation-duration: 1ms; }
+    .gul-dot { transition-duration: 1ms; }
+  }
+</style>
+<script>
+  /* Decide before first paint, so the app never flashes behind the gate. */
+  try {
+    if (localStorage.getItem('gul.gate') !== 'open') {
+      document.documentElement.className += ' gul-locked';
+    }
+  } catch (e) { document.documentElement.className += ' gul-locked'; }
+</script>
+
 <script>
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
     window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
@@ -24,6 +92,103 @@
 </script>
 </head>
 <body>
+
+<div id="gul-gate" hidden>
+  <img src="./gul-mark.svg" alt="" width="52" height="52">
+  <div>
+    <div class="gul-gate-word">GUL</div>
+  </div>
+  <p class="gul-gate-sub">Private preview. Enter the key to continue.</p>
+  <div class="gul-dots" id="gul-dots" aria-hidden="true">
+    <span class="gul-dot"></span><span class="gul-dot"></span>
+    <span class="gul-dot"></span><span class="gul-dot"></span>
+  </div>
+  <div class="gul-gate-msg" id="gul-gate-msg" role="status" aria-live="polite"></div>
+  <div class="gul-keys" id="gul-keys">
+    <button class="gul-key" type="button" data-d="1">1</button>
+    <button class="gul-key" type="button" data-d="2">2</button>
+    <button class="gul-key" type="button" data-d="3">3</button>
+    <button class="gul-key" type="button" data-d="4">4</button>
+    <button class="gul-key" type="button" data-d="5">5</button>
+    <button class="gul-key" type="button" data-d="6">6</button>
+    <button class="gul-key" type="button" data-d="7">7</button>
+    <button class="gul-key" type="button" data-d="8">8</button>
+    <button class="gul-key" type="button" data-d="9">9</button>
+    <span class="gul-key ghost"></span>
+    <button class="gul-key" type="button" data-d="0">0</button>
+    <button class="gul-key wide" type="button" data-act="del">DEL</button>
+  </div>
+</div>
+
+<script>
+(function () {
+  var KEY_HASH = '4ea837ac2e51fbac23f73aff0a9dd25089f67d3e4b1b5355219dc8f254f4653d';
+  var gate = document.getElementById('gul-gate');
+  var dots = document.getElementById('gul-dots');
+  var msg  = document.getElementById('gul-gate-msg');
+  var buf  = '';
+  var busy = false;
+
+  function open() {
+    try { localStorage.setItem('gul.gate', 'open'); } catch (e) {}
+    document.documentElement.className =
+      document.documentElement.className.replace(/\bgul-locked\b/g, '').trim();
+    gate.hidden = true;
+    document.removeEventListener('keydown', onKey);
+  }
+
+  if (!document.documentElement.className.match(/\bgul-locked\b/)) { gate.hidden = true; return; }
+  gate.hidden = false;
+
+  function paint() {
+    var d = dots.children;
+    for (var i = 0; i < d.length; i++) d[i].classList.toggle('on', i < buf.length);
+  }
+
+  async function digest(s) {
+    if (window.crypto && crypto.subtle && window.isSecureContext) {
+      var b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+      return Array.from(new Uint8Array(b))
+        .map(function (x) { return x.toString(16).padStart(2, '0'); }).join('');
+    }
+    return null; /* http:// — fall through to the plain check below */
+  }
+
+  async function check() {
+    busy = true;
+    var h = await digest(buf);
+    var ok = h ? h === KEY_HASH : buf === '2287';
+    if (ok) { open(); return; }
+    msg.textContent = 'Not the key';
+    gate.classList.remove('gul-shake');
+    void gate.offsetWidth;
+    gate.classList.add('gul-shake');
+    setTimeout(function () { buf = ''; paint(); busy = false; }, 420);
+  }
+
+  function push(d) {
+    if (busy || buf.length >= 4) return;
+    msg.textContent = '';
+    buf += d; paint();
+    if (buf.length === 4) check();
+  }
+
+  function del() { if (busy) return; buf = buf.slice(0, -1); paint(); msg.textContent = ''; }
+
+  document.getElementById('gul-keys').addEventListener('click', function (e) {
+    var b = e.target.closest('[data-d],[data-act]');
+    if (!b) return;
+    if (b.dataset.act === 'del') del(); else push(b.dataset.d);
+  });
+
+  function onKey(e) {
+    if (/^[0-9]$/.test(e.key)) { push(e.key); e.preventDefault(); }
+    else if (e.key === 'Backspace') { del(); e.preventDefault(); }
+  }
+  document.addEventListener('keydown', onKey);
+  paint();
+})();
+</script>
 
 <header class="nav">
   <a class="brand" href="#today">
@@ -221,6 +386,6 @@
   </div>
 </div>
 
-<script type="module" src="./app.js"></script>
+<script type="module" src="./app.js?v=5"></script>
 </body>
 </html>
