@@ -1,10 +1,10 @@
 /* GUL — offline shell. Cache-first for the app's own files,
    network-first for navigations; the cloud syncs when it can. */
-const CACHE = 'gul-web-v2';
+const CACHE = 'gul-web-v3';
 const SHELL = [
   './', './index.html', './styles.css', './app.js', './firebase.js',
   './cities.js', './solar.js', './favicon.svg', './gul-mark.svg',
-  './manifest.webmanifest',
+  './app-icon.svg', './maskable-icon.svg', './manifest.webmanifest',
 ];
 
 self.addEventListener('install', e => {

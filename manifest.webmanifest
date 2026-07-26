@@ -1,13 +1,14 @@
 {
-  "name": "GUL — Pray with the sun",
+  "name": "GUL — Pray your five",
   "short_name": "GUL",
-  "description": "Prayer times where you are, and a quiet place to note your five daily prayers.",
+  "description": "An Islamic prayer tracker. Prayer times where you are, and a quiet place to note your five daily prayers.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0A1014",
-  "theme_color": "#0A1014",
+  "background_color": "#05080A",
+  "theme_color": "#05080A",
   "icons": [
-    { "src": "./favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+    { "src": "./app-icon.svg", "sizes": "1024x1024", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "./maskable-icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
   ]
 }

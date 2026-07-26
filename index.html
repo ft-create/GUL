@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gul — Pray with the sun</title>
-<meta name="description" content="Prayer times where you are, and a quiet place to note your five daily prayers. Accounts optional — your notes sync across devices when you sign in.">
-<meta name="theme-color" content="#0A1014">
+<title>Gul — Pray your five</title>
+<meta name="description" content="Gul (گُل) — an Islamic prayer tracker. Five prayers, five domes, one sun. Prayer times where you are, and a quiet private place to note your five daily prayers.">
+<meta name="theme-color" content="#05080A">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&family=Amiri:wght@400&display=swap">
-<link rel="stylesheet" href="./styles.css?v=2">
+<link rel="stylesheet" href="./styles.css?v=3">
 <style>.auth-overlay[hidden]{display:none}</style>
 <script>
   if ('serviceWorker' in navigator && location.protocol !== 'file:') {
@@ -47,18 +47,9 @@
     <div class="today-flower">
       <div class="flower-stage">
         <div class="corona" id="corona"></div>
-        <svg id="flower" viewBox="-6 -6 76 76" width="300" height="300" role="img" aria-label="Prayer flower" style="overflow: visible;">
+        <svg id="flower" viewBox="0 0 64 64" width="300" height="300" role="img" aria-label="Prayer flower" style="overflow: visible;">
           <g id="petals"></g>
-          <g transform="translate(32 32)">
-            <path id="dome" fill="none" stroke="#F2EDE3" stroke-width="1.5" stroke-linejoin="round"
-              d="M-19 24.75 C-27 12.75 -24 -3.25 -12 -13.25 C-7 -17.25 -3 -20.25 0 -24.75 C3 -20.25 7 -17.25 12 -13.25 C24 -3.25 27 12.75 19 24.75 Z"/>
-            <circle id="disc-day" cx="0" cy="0" r="9.8" fill="#E9B366"/>
-            <mask id="gul-moonmask" maskUnits="userSpaceOnUse" x="-20" y="-20" width="40" height="40">
-              <circle cx="0" cy="0" r="8.6" fill="#fff"/>
-              <circle cx="5.6" cy="-3.8" r="8.6" fill="#000"/>
-            </mask>
-            <circle id="disc-night" cx="0" cy="0" r="8.6" fill="#E6ECF2" mask="url(#gul-moonmask)" style="display:none"/>
-          </g>
+          <circle id="disc" cx="32" cy="32" r="7.4" fill="#E9B366"/>
         </svg>
         <div class="tips" id="tips"></div>
       </div>
@@ -204,7 +195,7 @@
 
 <footer class="foot">
   <img src="./gul-mark.svg" alt="" width="26" height="26">
-  <span>GUL — Pray with the sun.</span>
+  <span>GUL — Pray your five.</span>
   <span class="foot-note">Times are computed astronomically in your browser. Notes are encrypted in transit and visible only to you.</span>
 </footer>
 
