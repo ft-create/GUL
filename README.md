@@ -62,4 +62,4 @@ from any other sub-path — drag the folder into any static host and it runs.
 Nothing in the interface may be decorative. If a pixel moves, it moves
 because the sun moved.
 
-Slogan: **Pray your five.** · Store line: *Gul: Salah Tracker & Athan*
+Slogan: **Pray your five.** · Store line: *Gul: Prayer Times & Tracker*
