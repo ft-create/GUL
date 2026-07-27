@@ -10,7 +10,7 @@
      shouting in system blue. -->
 <meta name="format-detection" content="telephone=no,date=no,address=no,email=no">
 <title>GUL — Design brief · FT Experiments</title>
-<meta name="description" content="GUL — an Islamic prayer tracker whose mark is five domes around the sun. Design brief: the mark, the sun ramp, motion laws, and the product path.">
+<meta name="description" content="GUL — a prayer tracker whose mark is a flower: five petals around the sun, one petal per prayer. Design brief: the mark, the palette, the world clock.">
 <link rel="icon" href="../favicon.svg" type="image/svg+xml">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -136,7 +136,7 @@
 
   /* ── The bloom rail ──────────────────────────────────────────────
      A tall track with a sticky flower inside it, so scrolling the brief
-     plays one day: the sun rises, crosses, sets, and a dome opens at each
+     plays one day: the sun rises, crosses, sets, and a petal opens at each
      prayer. The reader arrives at section 01 having already watched the
      thing section 01 describes. */
   .rail{position:relative;height:340vh;border-bottom:1px solid var(--line)}
@@ -152,7 +152,7 @@
   .rail-flower svg{width:100%;height:100%;overflow:visible}
   /* No CSS transform here on purpose: an inline `style.transform` overrides an
      SVG element's `transform` attribute, and the attribute is what places each
-     dome around the sun. The scroll handler writes the full attribute instead,
+     petal around the sun. The scroll handler writes the full attribute instead,
      so placement and growth stay in one expression. */
   .rail-flower .p{transition:fill .45s cubic-bezier(.22,1,.36,1)}
   .rail-cap{position:relative;text-align:center;min-height:44px}
@@ -204,6 +204,12 @@
   }
   .rule .n{font-family:var(--display);font-size:26px;color:var(--faint);line-height:1}
   .rule strong{display:block;color:var(--cream);font-weight:500;margin-bottom:5px}
+
+  /* Facts, one line each. The brief used to say these in paragraphs; a
+     reader scanning a brief wants the line, not the prose around it. */
+  .facts{list-style:none;margin:24px 0 0;padding:0;max-width:70ch}
+  .facts li{padding:12px 0;border-top:1px solid var(--line);font-size:14.5px}
+  .facts li b{color:var(--cream);font-weight:500}
 
   /* ── The motion law, running ──────────────────────────────────────── */
   .lawdemo{
@@ -304,12 +310,12 @@
       <h1 class="word">GUL</h1>
     </div>
     <p class="tag">Pray your five</p>
-    <p class="storeline">Store line — Gul: Salah Tracker &amp; Athan</p>
+    <p class="storeline">Store line — Gul: Prayer Times &amp; Tracker</p>
 
     <p class="lede">
-      An Islamic prayer tracker whose palette is the sky. Five prayers, five domes, and a sun
-      at the centre whose colour is computed from its real altitude rather than chosen — so the
-      interface changes with the day, and the mark is a working instrument rather than a logo.
+      <em>Gul</em> means flower. Five prayers, five petals — one opens each time you pray, and a
+      day fully prayed is a flower in full bloom. The sun at the centre is coloured by where the
+      sun actually is in your sky.
     </p>
 
     <div class="actions">
@@ -342,7 +348,7 @@
     </div>
     <div class="rail-cap">
       <p class="t" id="rail-title">Before first light</p>
-      <p class="s" id="rail-sub">Five domes, closed</p>
+      <p class="s" id="rail-sub">Five petals, closed</p>
     </div>
     <p class="rail-hint">Scroll — one day</p>
   </div>
@@ -352,23 +358,23 @@
 <section>
   <div class="wrap">
     <p class="eyebrow"><span class="num">01</span> / The mark</p>
-    <h2>Five domes radiating from the sun. The petal is not like a dome — it is the dome.</h2>
+    <h2>The name is already the drawing.</h2>
     <p>
       <strong style="color:var(--cream);font-weight:500">Gul</strong> is Persian and Urdu for
-      <em>flower</em> — and, said on its own, the rose. The name is already the mark: five
-      petals, one sun at the centre, five prayers in a day. Nothing had to be invented to get
-      from the word to the drawing.
-    </p>
-    <p>
-      The dome silhouette, stretched: flat base, haunches swelling past the base, a point at the
-      top. Each dome belongs to one named prayer and is fixed to its position — Fajr at the top,
-      then clockwise — so the shape of a day is legible at a glance. A prayer you have noted is
-      a dome filled cream; one you have not yet is the <em>same dome, outlined</em>. Five-fold
-      symmetry holds at every state, so one look tells you where you are in the day.
+      <em>flower</em>. Five prayers, five petals, one sun at the centre. Nothing had to be
+      invented.
     </p>
 
+    <ul class="facts">
+      <li><b>One petal per prayer.</b> Pray it, note it, and that petal fills cream.</li>
+      <li><b>Not yet is the same petal, outlined.</b> The shape never changes — only its state.</li>
+      <li><b>Positions are fixed.</b> Fajr at the top, then clockwise.</li>
+      <li><b>Five prayed is a flower in bloom.</b> That is the whole metaphor.</li>
+      <li><b>The petal is a dome in profile.</b> Flat base, swelling haunches, a point on top.</li>
+    </ul>
+
     <div class="markrow">
-      <svg viewBox="0 0 64 64" width="150" height="150" role="img" aria-label="GUL — five domes noted" style="overflow:visible">
+      <svg viewBox="0 0 64 64" width="150" height="150" role="img" aria-label="GUL — five petals, all five prayed" style="overflow:visible">
         <g fill="#F2EDE3">
           <path d="M-5.2 0 C-8 -4.84 -8 -9.68 -7.04 -13.2 C-5.28 -16.72 -2.4 -19.36 0 -22 C2.4 -19.36 5.28 -16.72 7.04 -13.2 C8 -9.68 8 -4.84 5.2 0 Z" transform="translate(32,32) rotate(0) translate(0,-5.6)"/>
           <path d="M-5.2 0 C-8 -4.84 -8 -9.68 -7.04 -13.2 C-5.28 -16.72 -2.4 -19.36 0 -22 C2.4 -19.36 5.28 -16.72 7.04 -13.2 C8 -9.68 8 -4.84 5.2 0 Z" transform="translate(32,32) rotate(72) translate(0,-5.6)"/>
@@ -401,10 +407,10 @@
         <circle cx="32" cy="32" r="7.4" fill="#9AA6AE"/>
       </svg>
     </div>
-    <p class="caption">Five noted · two noted · Isha through to first light — a grey disc, never a crescent</p>
+    <p class="caption">All five prayed · two prayed · night — a grey disc, never a crescent</p>
 
     <div class="construct">
-      <svg viewBox="0 0 64 64" width="100%" role="img" aria-label="Construction — one dome, upright" style="overflow:visible">
+      <svg viewBox="0 0 64 64" width="100%" role="img" aria-label="Construction — one petal, upright" style="overflow:visible">
         <circle cx="32" cy="32" r="27.6" fill="none" stroke="#1C2723" stroke-dasharray="2 3"/>
         <circle cx="32" cy="32" r="14" fill="none" stroke="#1C2723" stroke-dasharray="2 3"/>
         <circle cx="32" cy="32" r="5.6" fill="none" stroke="#1C2723" stroke-dasharray="2 3"/>
@@ -420,7 +426,7 @@
           <div><dt>Haunches widest on</dt><dd>r = 14</dd></div>
           <div><dt>Apex on</dt><dd>r = 27.6</dd></div>
           <div><dt>Profile</dt><dd>base half-width 5.2 · haunch 8 · height 22</dd></div>
-          <div><dt>Copies</dt><dd>five, at 72° — Fajr at the top, then clockwise</dd></div>
+          <div><dt>Copies</dt><dd>five, at 72° — Fajr top, then clockwise</dd></div>
           <div><dt>Clear space</dt><dd>the sun's diameter on all four sides, from the apexes</dd></div>
           <div><dt>Small sizes</dt><dd>below 24px the haunch widens to 8.6–9.6 so the five stay countable at 16px</dd></div>
         </dl>
@@ -433,14 +439,11 @@
 <section>
   <div class="wrap">
     <p class="eyebrow"><span class="num">02</span> / Design + identity</p>
-    <h2>The sun is the palette. Everything else is a small fixed set.</h2>
+    <h2>The sun is the palette.</h2>
 
     <p>
-      <strong style="color:var(--cream);font-weight:500">Gul</strong> is the flower — the rose.
-      Five prayers, five petals: a day fully noted is a flower in full bloom, and that is the
-      whole metaphor. Deliberately not a crescent: the crescent-and-star is the most-used mark
-      in this category, so reaching for it buys recognition and spends distinctiveness in the
-      same move.
+      A flower and a sun, deliberately not a crescent — the crescent-and-star is the most-used
+      mark in this category, and reaching for it buys recognition while spending distinctiveness.
     </p>
 
     <div class="ramp" role="img" aria-label="Eleven-stop solar ramp from the dead of night to the meridian">
@@ -451,12 +454,12 @@
     </div>
     <p class="caption">−40° to +70° · the twilight stops sit near −22°, where Fajr and Isha fall</p>
 
-    <p style="margin-top:26px">
-      Eleven stops interpolated by real solar altitude — computed, not chosen — and the setting
-      sun runs warmer than the rising sun at the same angle, because dusk should not look like
-      dawn. From Isha to first light the disc turns grey (#9AA6AE): the same circle, only its
-      colour changes, so the mark never changes shape. Nothing else in the product may be warm.
-    </p>
+    <ul class="facts">
+      <li><b>Computed, not chosen.</b> Eleven stops, interpolated by the sun's real altitude.</li>
+      <li><b>Dusk is not dawn.</b> The setting sun runs warmer than the rising sun at the same angle.</li>
+      <li><b>Night is grey (#9AA6AE).</b> Same circle, different colour — the mark never changes shape.</li>
+      <li><b>Nothing else in the product is warm.</b></li>
+    </ul>
 
     <div class="swatches">
       <span class="sw"><b style="background:#05080A;box-shadow:inset 0 0 0 1px #2A3630"></b><span>Ink · #05080A</span></span>
@@ -470,30 +473,23 @@
       <div class="rule">
         <span class="n">01</span>
         <p><strong>Gold is the sun and nothing else.</strong>
-          No gold buttons, no gold borders. Green means a prayer was noted and nothing else.
-          A lapse is earth. There is no red anywhere in the product.</p>
+          Green means a prayer was noted. A lapse is earth. No red anywhere.</p>
       </div>
       <div class="rule">
         <span class="n">02</span>
-        <p><strong>Type does one job each.</strong>
-          Instrument Serif for prayer names, times and anything meant to be read slowly.
-          DM Sans for every interface element, labels uppercase at .22em. Two families, no
-          third — a type system this small only stays legible if nothing is added to it.</p>
+        <p><strong>Two typefaces, no third.</strong>
+          Instrument Serif for prayer names and times. DM Sans for the interface.</p>
       </div>
       <div class="rule">
         <span class="n">03</span>
-        <p><strong>The voice is plain, quiet, second person.</strong>
-          It tells you the time, the place, and what you have noted. Nothing is dressed up:
-          a window is open or it is not, and the app says which.</p>
+        <p><strong>Plain, quiet, second person.</strong>
+          A window is open or it is not, and the app says which. Nothing is dressed up.</p>
       </div>
       <div class="rule">
         <span class="n">04</span>
         <p><strong>If it can be tapped, it is the whole row.</strong>
-          Noting a prayer is the one thing this app exists to do, so its target is never
-          smaller than a full-width row at 56px. Five chips on one line, each only as wide
-          as the word inside it, is a thumb aiming at seven characters — that was the first
-          version of Today and it was wrong. Silence is the default state: an empty ring
-          says <em>not yet</em> without five rows announcing what you have not done.</p>
+          Never smaller than a full-width row at 56px. Five chips on one line was the first
+          version of Today, and it was a thumb aiming at seven characters.</p>
       </div>
     </div>
   </div>
@@ -505,10 +501,8 @@
     <p class="eyebrow"><span class="num">03</span> / The world clock</p>
     <h2>One sun. Whichever city you are standing in.</h2>
     <p>
-      The five times are not fetched from anywhere — they are computed on the device from your
-      coordinates and the date, so the app works on a plane and in a basement. Change the place
-      and the whole day changes shape: how steeply the sun climbs, how long it stays up, how
-      late Isha finally lands. Press a city below and watch the same day rebuild itself.
+      Times are computed on the device, not fetched — so the app works on a plane and in a
+      basement. Press a city and watch the same day rebuild itself.
     </p>
 
     <!-- ── The world clock, running ────────────────────────────────────
@@ -538,13 +532,13 @@
       <div><b>&lt; 1 min</b><span>NOAA/Meeus on the device. Accurate to well under a minute, 1900–2100, anywhere on Earth.</span></div>
     </div>
 
-    <p style="margin-top:34px">
-      Ten conventions are supported — MWL, ISNA, Egypt, Umm al-Qura, Karachi, Tehran, Jafari,
-      Diyanet, Dubai, Singapore — with Standard and Ḥanafī Asr. Above roughly 48° the sun may
-      never reach the Fajr or Isha angle in midsummer; when that happens the app fills the gap
-      by a stated rule and says on screen that it has estimated, rather than quietly inventing
-      a time.
-    </p>
+    <ul class="facts">
+      <li><b>Ten conventions.</b> MWL, ISNA, Egypt, Umm al-Qura, Karachi, Tehran, Jafari,
+        Diyanet, Dubai, Singapore — with Standard and Ḥanafī Asr.</li>
+      <li><b>High latitudes are handled honestly.</b> Above roughly 48° the sun may never reach
+        the Fajr or Isha angle in midsummer. The app fills the gap by a stated rule and says
+        on screen that it estimated.</li>
+    </ul>
   </div>
 </section>
 
@@ -555,28 +549,22 @@
     <h2>An easy way to keep track of your five.</h2>
 
     <div class="cols">
-      <div><h3>Purpose built</h3><p>Prayer times that are locally accurate wherever you are, reminders on your own terms,
-        and a quiet private place to note your five prayers a day.</p></div>
+      <div><h3>The job</h3><p>Accurate prayer times wherever you are, and a quiet private place to note your five.</p></div>
 
-      <div><h3>The product answer</h3><p>A day is one flower. Note a prayer and its dome fills; the sun at the centre reports
-        what the sky is actually doing. One glance tells you where you are in the day.</p></div>
+      <div><h3>The answer</h3><p>A day is one flower. Pray, note it, and that petal opens. One glance tells you
+        where you are in the day.</p></div>
 
-      <div><h3>Today, and the month</h3><p>Under the flower, one row per prayer — name, real time, and whether you noted it —
-        where the whole row is the button. Then a timetable with every window and when it
-        closes, and a month view where each day is its own small flower, so the shape of a
-        month is legible, not just today.</p></div>
+      <div><h3>What you get</h3><p>Today as five tappable rows, a full timetable with closing times, and a month where
+        each day is its own small flower.</p></div>
 
-      <div><h3>Privacy posture</h3><p>Records live on the device and work with no account and no network. Accounts are opt-in:
-        sign in and your notes sync, encrypted in transit, readable only by you. Coordinates
-        are used locally and never uploaded.</p></div>
+      <div><h3>Privacy</h3><p>Everything works with no account and no network. Sign in and it syncs — readable only
+        by you. Coordinates never leave the device.</p></div>
 
-      <div><h3>Accuracy posture</h3><p>Times are computed astronomically on the device — NOAA/Meeus solar position, ten common
-        conventions, Standard and Ḥanafī Asr, and honest high-latitude rules that always say
-        when they have estimated. No API key, works offline, anywhere on Earth.</p></div>
+      <div><h3>Accuracy</h3><p>NOAA/Meeus solar position computed on the device. No API key, works offline, accurate
+        to under a minute anywhere on Earth.</p></div>
 
-      <div><h3>The line it holds</h3><p>The app knows where the sun is; it cannot know whether a prayer happened, so what you
-        note is yours to enter. Questions of practice go to a qualified scholar, not to
-        software.</p></div>
+      <div><h3>The line it holds</h3><p>The app knows where the sun is. It cannot know whether you prayed — that part is yours
+        to enter, and questions of practice go to a scholar, not to software.</p></div>
     </div>
   </div>
 </section>
@@ -588,21 +576,19 @@
     <h2>From a working web app to a build that can wake you at Fajr.</h2>
 
     <div class="cols three">
-      <div><h3>Now — the web app</h3><p>Prayer times anywhere on Earth, accounts and cross-device sync, marking, history and the
-        live mark all work in the browser. It installs to a home screen and runs offline.</p></div>
+      <div><h3>Now — the web app</h3><p>Times, marking, history, accounts and cross-device sync. Installs to a home screen and
+        runs offline.</p></div>
 
-      <div><h3>Next — the native build</h3><p>Scheduled reminders are the reason the native build exists: a web page cannot reliably
-        wake anyone before dawn. Same mark, same engine, same account.</p></div>
+      <div><h3>Next — the native build</h3><p>Scheduled reminders. A web page cannot reliably wake anyone before dawn. Same mark,
+        same engine, same account.</p></div>
 
-      <div><h3>Market-ready release</h3><p>Account recovery, consent and privacy documentation, a licensed Adhan recitation with
-        its attribution, and store distribution.</p></div>
+      <div><h3>Then — the store release</h3><p>Account recovery, consent and privacy documentation, store distribution.</p></div>
     </div>
 
     <div class="status">
       <p>
-        <strong style="font-weight:500">Status.</strong> The web app is live and in use, with
-        accounts and sync. The native build and the store release are a deliberate next phase,
-        not a claim already made.
+        <strong style="font-weight:500">Status.</strong> The web app is live and in use. The
+        native build and the store release are a next phase, not a claim already made.
       </p>
     </div>
   </div>
@@ -619,8 +605,8 @@
 /* ── The bloom rail ───────────────────────────────────────────────────
    Scrolling the brief plays one day. The sun's colour comes from the same
    eleven-stop ramp the product uses, interpolated by a synthetic altitude,
-   and a dome opens as the scroll passes each prayer. Nothing here counts
-   anything: five domes open because a day has five prayers in it, and the
+   and a petal opens as the scroll passes each prayer. Nothing here counts
+   anything: five petals open because a day has five prayers in it, and the
    flower is identical at the end of every day it plays.                   */
 (function () {
   var rail = document.getElementById('rail');
@@ -691,7 +677,7 @@
       var on = p >= PRAYERS[i].at;
       if (on) open++;
 
-      /* Each dome grows across a short window rather than popping at its
+      /* Each petal grows across a short window rather than popping at its
          threshold, so scrolling *opens* it instead of switching it on. The
          curve is the handoff's own ease, evaluated by hand because there is
          no CSS transition to hand it to. */
@@ -710,8 +696,8 @@
     var last = null;
     for (i = 0; i < PRAYERS.length; i++) if (p >= PRAYERS[i].at) last = PRAYERS[i];
     title.textContent = last ? last.note : 'Before first light';
-    sub.textContent   = open === 0 ? 'Five domes, closed'
-                      : open + (open === 1 ? ' dome open' : ' domes open') + ' · ' + last.name;
+    sub.textContent   = open === 0 ? 'Five petals, closed'
+                      : open + (open === 1 ? ' petal open' : ' petals open') + ' · ' + last.name;
   }
 
   if (reduce) { paint(0.95); return; }
