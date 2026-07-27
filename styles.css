@@ -103,6 +103,7 @@ html, body, button, a, .dt-row, .tt-row, .m-cell { touch-action: manipulation; }
   color: var(--pn-label); transition: color var(--pn-dur-tap) var(--pn-ease);
 }
 .links a:hover { color: var(--pn-sun-pale); }
+.links a.on { color: var(--pn-ink-2); }
 
 /* ── Today ───────────────────────────────────────────────────────── */
 .today {
@@ -512,8 +513,44 @@ html, body, button, a, .dt-row, .tt-row, .m-cell { touch-action: manipulation; }
 }
 @media (max-width: 720px) {
   .today { grid-template-columns: 1fr; }
-  .links a:not(:last-child) { display: none; }
   .now-name { font-size: 42px; }
+
+  /* ── The mobile nav ──────────────────────────────────────────────
+     This used to read `.links a:not(:last-child) { display: none }`,
+     which on a phone left exactly one tab standing — Settings, because
+     it happens to be last — and quietly removed Today, Timetable and
+     History from the app. Everything still worked; there was simply no
+     way to reach it. Hiding overflow is a reasonable instinct on a
+     marketing header and a serious bug on an app whose whole record
+     lives behind one of the hidden tabs.
+
+     The fix is the obvious one: give the tabs their own row. The header
+     wraps to two lines — wordmark and account on top, four tabs beneath,
+     spread across the full width so each is a wide target rather than a
+     word. Nothing is hidden at any width. */
+  .nav { flex-wrap: wrap; row-gap: 12px; padding-bottom: 0; }
+  .brand { order: 1; }
+  .auth-btn { order: 2; }
+  .links {
+    order: 3; width: 100%;
+    justify-content: space-between; gap: 4px;
+    border-top: 1px solid var(--pn-line-soft);
+    margin: 0 calc(-1 * clamp(20px, 5vw, 56px));
+    padding: 0 clamp(12px, 3vw, 20px);
+  }
+  .links a {
+    flex: 1; text-align: center;
+    padding: 13px 2px; min-height: 46px;
+    font-size: 10px; letter-spacing: .14em;
+    border-bottom: 2px solid transparent;
+  }
+  /* The router already marks the active tab with .on — it just had
+     nothing to show for it while three of the four were hidden. */
+  .links a.on { color: var(--pn-ink-2); border-bottom-color: var(--pn-sun); }
+}
+@media (max-width: 380px) {
+  .links a { font-size: 9px; letter-spacing: .08em; }
+  .brand-word { font-size: 21px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
