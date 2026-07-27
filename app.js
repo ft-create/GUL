@@ -4,9 +4,9 @@
 
 import {
   solarDay, altitudeAt, shadowRatioAt, windows, fmtMinutes, METHODS,
-} from './solar.js?v=18';
-import { QUICK, searchCities } from './cities.js?v=18';
-import { Sync } from './firebase.js?v=18';
+} from './solar.js?v=19';
+import { QUICK, searchCities } from './cities.js?v=19';
+import { Sync } from './firebase.js?v=19';
 /* ── Why every internal import carries ?v= ───────────────────────────────
    index.html versions styles.css and app.js, but a module graph is invisible
    to it: app.js pulls solar.js, cities.js and firebase.js by bare path, so a
@@ -269,6 +269,8 @@ const el = {
         phase: $('ap-phase'), meta: $('ap-meta'), scrub: $('ap-scrub') },
   ttDate: $('tt-date'), ttRows: $('tt-rows'),
   monthTitle: $('month-title'), monthGrid: $('month-grid'),
+  csRange: $('cs-range'), csStreak: $('cs-streak'), csBest: $('cs-best'),
+  csRate: $('cs-rate'), csBars: $('cs-bars'), csNote: $('cs-note'),
   placeName: $('place-name'), placeMeta: $('place-meta'), placeQibla: $('place-qibla'),
   cityRow: $('city-row'), placeSearch: $('place-search'), searchResults: $('search-results'),
   geoBtn: $('geo-btn'), methodList: $('method-list'), asrToggle: $('asr-toggle'), asrNote: $('asr-note'),
@@ -636,7 +638,139 @@ function miniFlower(n, size) {
     <circle cx="32" cy="32" r="${n > 0 ? 5 : 3.4}" fill="${n > 0 ? SUN : '#1E2A24'}"></circle></svg>`;
 }
 
+/* ── Consistency ─────────────────────────────────────────────────────
+   Three questions a person actually asks of a record: how long is the run,
+   how much of it did I note, and which of the five is the one that slips.
+
+   Two rules make the numbers honest, and both matter more than the maths:
+
+   1. The window never begins before the first day you noted anything.
+      Counting the days before you had the app as misses would be inventing
+      a failure out of an absence of data.
+   2. Today counts only the prayers whose windows have already opened.
+      Otherwise every morning would report a 40% day at breakfast.
+
+   A prayer with no elapsed windows in range is shown as "—" rather than 0%,
+   because zero out of zero is not zero.                                     */
+let csDays = 30;
+
+function consistency(days) {
+  const tKey = todayKey();
+  const min = nowParts().min;
+  const today = dayFor(tKey);
+
+  /* A window has opened if its start time has passed. Prayers the solar
+     engine could not place today (polar cases) simply do not count. */
+  const openToday = k => today[k] != null && isFinite(today[k]) && today[k] <= min;
+
+  const first = Object.keys(notes).sort()[0];
+  let start = shiftKey(tKey, -(days - 1));
+  let clipped = false;
+  if (first && first > start) { start = first; clipped = true; }
+  if (!first) return null;
+
+  const per = Object.fromEntries(KEYS.map(k => [k, { done: 0, of: 0 }]));
+  let done = 0, of = 0, dayCount = 0;
+
+  for (let k = start; k <= tKey; k = shiftKey(k, 1)) {
+    dayCount++;
+    KEYS.forEach(pk => {
+      if (k === tKey && !openToday(pk)) return;
+      per[pk].of++; of++;
+      if (isNoted(k, pk)) { per[pk].done++; done++; }
+    });
+  }
+  return { per, done, of, dayCount, start, clipped };
+}
+
+/* Consecutive days with all five noted. Today only breaks a run once it is
+   over — an incomplete today is a day still in progress, so the count runs
+   from yesterday until today is finished. */
+function streaks() {
+  const tKey = todayKey();
+  const full = k => KEYS.every(pk => isNoted(k, pk));
+
+  let cur = 0;
+  let k = full(tKey) ? tKey : shiftKey(tKey, -1);
+  while (full(k)) { cur++; k = shiftKey(k, -1); }
+
+  let best = 0, run = 0, prev = null;
+  Object.keys(notes).filter(full).sort().forEach(kk => {
+    run = (prev && shiftKey(prev, 1) === kk) ? run + 1 : 1;
+    prev = kk;
+    if (run > best) best = run;
+  });
+  return { cur, best: Math.max(best, cur) };
+}
+
+const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+function drawConsistency() {
+  [...el.csRange.children].forEach(b =>
+    b.setAttribute('aria-pressed', String(+b.dataset.d === csDays)));
+
+  const c = consistency(csDays);
+  const s = streaks();
+
+  el.csStreak.textContent = c ? plural(s.cur, 'day') : '—';
+  el.csBest.textContent = c ? plural(s.best, 'day') : '—';
+  el.csStreak.classList.toggle('on', s.cur > 0);
+  el.csBest.classList.toggle('on', !!c && s.best > 0);
+
+  if (!c) {
+    el.csRate.textContent = '—';
+    el.csRate.classList.remove('on');
+    el.csBars.innerHTML = '';
+    el.csNote.textContent = 'Note your first prayer and this fills in.';
+    return;
+  }
+
+  const pct = c.of ? Math.round((c.done / c.of) * 100) : 0;
+  el.csRate.textContent = `${pct}%`;
+  el.csRate.classList.toggle('on', pct >= 80);
+
+  /* One prayer is lit — the one you keep best. Ties go to the earlier
+     prayer in the day, which is the order the rows are already in. */
+  let bestKey = null, bestRate = -1;
+  KEYS.forEach(k => {
+    const r = per_rate(c.per[k]);
+    if (r !== null && r > bestRate) { bestRate = r; bestKey = k; }
+  });
+
+  el.csBars.innerHTML = '';
+  KEYS.forEach((k, i) => {
+    const { done, of } = c.per[k];
+    const r = per_rate(c.per[k]);
+    const row = document.createElement('div');
+    row.className = 'cs-row' + (k === bestKey && of ? ' best' : '');
+    row.innerHTML =
+      `<span class="cs-name">${NAMES[i]}</span>` +
+      '<span class="cs-track"><span class="cs-fill" style="width:' +
+        (r === null ? 0 : Math.round(r * 100)) + '%"></span></span>' +
+      `<span class="cs-val">${of ? done + '/' + of : '—'}</span>`;
+    row.setAttribute('aria-label',
+      `${NAMES[i]} — ${of ? `${done} of ${of} noted` : 'no windows in range yet'}`);
+    el.csBars.appendChild(row);
+  });
+
+  const sk = parseKey(c.start);
+  const since = new Date(sk.y, sk.m - 1, sk.d)
+    .toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+  el.csNote.textContent = c.clipped
+    ? `${c.done} of ${c.of} prayers noted since you started, on ${since}.`
+    : `${c.done} of ${c.of} prayers noted over ${plural(c.dayCount, 'day')}.`;
+}
+function per_rate(x) { return x.of ? x.done / x.of : null; }
+
+el.csRange.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  csDays = +b.dataset.d;
+  drawConsistency();
+});
+
 function drawHistory() {
+  drawConsistency();
   const p = nowParts();
   const tKey = todayKey();
   const base = new Date(p.y, p.m - 1 + monthOffset, 1);

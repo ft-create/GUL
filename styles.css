@@ -360,6 +360,81 @@ html, body, button, a, .dt-row, .tt-row, .m-cell { touch-action: manipulation; }
   display: flex; align-items: center; justify-content: center;
 }
 
+/* ── Consistency ─────────────────────────────────────────────────────
+   A report, not an instrument: nothing in here is the sun, so everything
+   eases. Green is the one accent, because green already means "noted"
+   everywhere else in the app and a second meaning would break that. The
+   unfilled part of a bar is line colour, never wilt — an unmarked prayer
+   is an absence of a note, not a recorded failure, and colouring it as
+   damage would be the app making a claim it cannot make. */
+.consist {
+  margin: 18px 0 8px; padding: 18px 18px 14px;
+  background: var(--pn-card); border: 1px solid var(--pn-line);
+  border-radius: var(--pn-r-panel);
+}
+.cs-head {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+}
+.cs-title { font-family: var(--pn-display); font-size: 23px; color: var(--pn-ink-2); }
+.cs-range { display: flex; gap: 6px; }
+.cs-range button {
+  font: inherit; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  padding: 7px 12px; min-height: 36px; border-radius: var(--pn-r-pill); cursor: pointer;
+  border: 1px solid var(--pn-line-strong); background: transparent; color: var(--pn-muted);
+  transition: color var(--pn-dur-tap) var(--pn-ease),
+              border-color var(--pn-dur-tap) var(--pn-ease),
+              background var(--pn-dur-tap) var(--pn-ease);
+}
+.cs-range button:hover { color: var(--pn-ink-2); border-color: var(--pn-label); }
+.cs-range button[aria-pressed="true"] {
+  background: var(--pn-ink-2); border-color: var(--pn-ink-2); color: var(--pn-page);
+}
+
+.cs-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--pn-line);
+  border: 1px solid var(--pn-line); border-radius: var(--pn-r-well); overflow: hidden; }
+.cs-stats > div { background: var(--pn-surface); padding: 14px 14px 12px; }
+.cs-stats b {
+  display: block; font-family: var(--pn-display); font-weight: 400;
+  font-size: 27px; line-height: 1.1; color: var(--pn-ink-2);
+  transition: color var(--pn-dur-grow) var(--pn-ease);
+}
+.cs-stats b.on { color: var(--pn-leaf); }
+.cs-stats span {
+  display: block; font-size: 10px; letter-spacing: .14em; text-transform: uppercase;
+  color: var(--pn-label); margin-top: 5px;
+}
+
+.cs-bars { margin-top: 16px; }
+.cs-row {
+  display: grid; grid-template-columns: 62px 1fr 52px; align-items: center;
+  gap: 12px; padding: 8px 0;
+}
+.cs-name { font-family: var(--pn-display); font-size: 16px; color: var(--pn-ink-3); }
+.cs-track {
+  height: 7px; border-radius: var(--pn-r-pill); background: var(--pn-line);
+  overflow: hidden;
+}
+.cs-fill {
+  display: block; height: 100%; border-radius: var(--pn-r-pill);
+  background: var(--pn-leaf-late);
+  transition: width var(--pn-dur-heal) var(--pn-ease),
+              background var(--pn-dur-heal) var(--pn-ease);
+}
+/* The strongest prayer of the period is the only one lit. Lighting them
+   all would make the ranking unreadable, which is the whole point of the
+   row. */
+.cs-row.best .cs-fill { background: var(--pn-leaf); }
+.cs-val { font-size: 12px; color: var(--pn-muted); text-align: right; font-variant-numeric: tabular-nums; }
+.cs-row.best .cs-val { color: var(--pn-ink-3); }
+@media (max-width: 420px) {
+  .cs-row { grid-template-columns: 54px 1fr 46px; gap: 9px; }
+  .cs-stats b { font-size: 23px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cs-fill, .cs-stats b { transition: none; }
+}
+
 /* ── History calendar ────────────────────────────────────────────── */
 .month-title { font-family: var(--pn-display); font-size: 23px; color: var(--pn-ink-2); padding: 20px 0 12px; }
 .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }

@@ -3,7 +3,7 @@
 /* Bump this on every deploy that changes a shell asset. The install
    handler precaches SHELL under this name, so a stale name means a
    returning visitor keeps the old app even after a successful deploy. */
-const CACHE = 'gul-web-v18';
+const CACHE = 'gul-web-v19';
 const SHELL = [
   './', './index.html', './styles.css', './app.js', './firebase.js',
   './cities.js', './solar.js', './favicon.svg', './gul-mark.svg',
