@@ -77,6 +77,9 @@ export const Sync = {
     this._unsub = [];
     this.user = u;
     this.online = !!u;
+    /* Neither claim nor blame carries across a sign-in. */
+    this.lastError = null;
+    this.synced = false;
     this.onChange?.();
     if (u) await this._subscribe();
   },
@@ -94,7 +97,14 @@ export const Sync = {
         this.remoteSettingsU = snap.data().updatedAt || 0;
         this.onRemoteSettings?.(snap.data().settings, this.remoteSettingsU);
       }
-    } catch (e) { console.warn('Gul: settings pull failed', e); }
+    } catch (e) {
+      /* A denied read is the loudest possible signal that sync is dead, and
+         for two days it went to console.warn and nowhere else. It has to
+         reach lastError or the UI will keep claiming success. */
+      console.warn('Gul: settings pull failed', e);
+      this.lastError = e;
+      this.onChange?.();
+    }
 
     try {
       let first = true;
@@ -105,8 +115,17 @@ export const Sync = {
           if (ch.type === 'removed') return;
           this.onRemoteNotes?.(ch.doc.id, { p: d.p || {}, u: d.u || 0 });
         });
+        /* Proof, not intent: the cloud answered, so reads work. */
+        this.synced = true;
+        this.lastError = null;
         if (first) { first = false; this.onFirstSync?.(); }
-      }, err => console.warn('Gul: sync listen failed', err));
+        this.onChange?.();
+      }, err => {
+        console.warn('Gul: sync listen failed', err);
+        this.lastError = err;
+        this.synced = false;
+        this.onChange?.();
+      });
       this._unsub.push(u1);
 
       const u2 = fs.onSnapshot(fs.doc(db, 'gulUsers', uid), snap => {

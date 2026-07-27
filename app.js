@@ -4,9 +4,9 @@
 
 import {
   solarDay, altitudeAt, shadowRatioAt, windows, fmtMinutes, METHODS,
-} from './solar.js?v=17';
-import { QUICK, searchCities } from './cities.js?v=17';
-import { Sync } from './firebase.js?v=17';
+} from './solar.js?v=18';
+import { QUICK, searchCities } from './cities.js?v=18';
+import { Sync } from './firebase.js?v=18';
 /* ── Why every internal import carries ?v= ───────────────────────────────
    index.html versions styles.css and app.js, but a module graph is invisible
    to it: app.js pulls solar.js, cities.js and firebase.js by bare path, so a
@@ -774,8 +774,19 @@ function drawAuth() {
         : 'Signed in — your notes and settings sync to the cloud and across your devices.';
     el.accountAction.textContent = 'Sign out';
     el.accountAction.onclick = () => Sync.signOut();
-    el.syncLine.textContent = Sync.lastError ? 'Sync blocked — notes staying local' : 'Synced — your notes are safe in the cloud';
-    el.syncLine.classList.toggle('on', !Sync.lastError);
+    /* Three states, not two. "Synced" is now a claim the app has to earn:
+       it means the cloud actually answered, not merely that someone is
+       signed in. The old version said it the instant you signed in, so for
+       two days it read "safe in the cloud" while every write was being
+       refused by rules that had no gulUsers block in them. An app that
+       reports its intentions instead of its results is worse than one that
+       says nothing. */
+    el.syncLine.textContent = Sync.lastError
+      ? 'Sync blocked — notes staying on this device'
+      : Sync.synced
+        ? 'Synced — your notes are safe in the cloud'
+        : 'Signed in — waiting for the first sync';
+    el.syncLine.classList.toggle('on', !Sync.lastError && !!Sync.synced);
   } else {
     el.accountName.textContent = 'Local only';
     el.accountMeta.textContent = Sync.ready && !Sync._fb
