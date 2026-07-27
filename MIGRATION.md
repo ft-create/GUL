@@ -93,6 +93,8 @@ loop.
 3. Update the hub card in `ft-create/ironcade` if the hub still points here.
 4. **Add the new hostname to Firebase → Authentication → Settings →
    Authorized domains.**
+5. **If you also change `authDomain`, register the new handler URL in Google
+   Cloud Console.** See the trap below — this one has already cost a day.
 
 Step 4 is not optional and its failure mode is nasty. Email/password sign-in
 does **not** check that list, so everything will look fine — people can sign
@@ -106,9 +108,35 @@ than starting a flow it knows will fail. So on a new domain the button will
 quietly vanish until the domain is added — and reappear by itself, no deploy,
 once it is. If the button is missing on a new host, this is why.
 
-Note `authDomain` in `FIREBASE_CONFIG` stays `pray-now-15f80.firebaseapp.com`
-regardless of where the app is served from. That is the OAuth handler's home,
-not the app's. Do not "helpfully" change it to the new domain.
+### The `authDomain` trap
+
+`authDomain` in `FIREBASE_CONFIG` is **`gul.fareedtareen.com`**, not
+`pray-now-15f80.firebaseapp.com`. It was changed on 26 Jul 2026, because
+Google's account chooser prints the handler's domain — "to continue to …" —
+and a project ID nobody recognises reads like a phishing address to the person
+being asked for their password. Project IDs can never be renamed, so the fix
+was to serve the handler from our own name. `gul.fareedtareen.com` is a
+Cloudflare Pages project whose entire contents are one `_worker.js`: it
+forwards `/__/*` to `pray-now-15f80.firebaseapp.com` and redirects everything
+else to the app. Same handshake, our name on it.
+
+**If you move the app and change `authDomain` again, Firebase will not
+finish the job for you.** The new handler URL has to be registered by hand:
+
+- Google Cloud Console → APIs & Services → Credentials → the OAuth 2.0 Client
+  ID → **Authorized redirect URIs** → add `https://<authDomain>/__/auth/handler`
+- and **Authorized JavaScript origins** → add `https://<authDomain>`
+
+Skip that and Google answers every sign-in with `redirect_uri_mismatch` —
+which the visitor sees as a full-page **"Access blocked: this app's request is
+invalid."** Off your site, no way back, no clue what went wrong. That is
+exactly what happened for the first hours the custom domain was live.
+
+Note what does *not* save you here: `Sync.googleAvailable()` checks Firebase's
+authorized-**domain** list, so it hides the button when the *app's* host is
+unregistered. It knows nothing about the OAuth client's redirect URIs. In this
+failure the button looks perfectly healthy and the flow dies at Google. Two
+different lists, two different failure modes, one visible defence.
 
 ---
 
@@ -123,10 +151,11 @@ re-do three things that live in the console and *not* in the repo:
   PERMISSION_DENIED**. A 404 means the rules are open and every account's
   record is readable.
 - **Enable the sign-in providers.** Email/Password, and Google if wanted.
-  Google also needs a public-facing name (currently `Gul`) and a support email
-  (currently `ft@fareedtareen.com`) — both are shown to users on the consent
-  screen.
-- **Add the authorized domains.** Per §4.
+  Google also needs a public-facing name and a support email (currently
+  `ft@fareedtareen.com`) — both are shown to users on the consent screen.
+- **Add the authorized domains,** and **register the OAuth redirect URI and
+  JavaScript origin** for whatever `authDomain` you end up with. Per §4 —
+  including the part about why the app cannot warn you when you forget.
 
 **Off Firebase entirely:** the seam is narrow on purpose. `firebase.js` is the
 only file that knows a cloud exists, and it exposes one object, `Sync`, with a
