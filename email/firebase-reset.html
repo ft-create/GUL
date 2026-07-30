@@ -1,0 +1,104 @@
+<!-- ── GUL — Firebase Auth: "Reset your password" ───────────────────────
+     Paste into Firebase console → Authentication → Templates → Password
+     reset → edit → Message.
+
+     Placeholders that must survive any edit:
+       %LINK%   the one-time reset URL
+       %EMAIL%  the address the reset was requested for
+
+     Subject, set by hand rather than with %APP_NAME%:
+
+       Reset your Gul password
+
+     A reset mail is read by someone who is either locked out or alarmed.
+     It says the two things each of them needs — how to get back in, and
+     what happens if they did not ask — and then it stops.
+-->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="dark light" />
+<meta name="supported-color-schemes" content="dark light" />
+<title>Reset your Gul password</title>
+</head>
+<body style="margin:0; padding:0; background-color:#05080A;">
+
+<div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden;">
+  Choose a new password. Your record is untouched.
+</div>
+
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#05080A" style="background-color:#05080A;">
+<tr><td align="center" style="padding:0;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width:100%; max-width:600px;">
+
+    <tr>
+      <td align="center" style="padding:44px 0 0 0;">
+        <img src="https://experiment.fareedtareen.com/gul/email/gul-mark-ink-320.png"
+             width="88" height="88" alt="Gul" style="width:88px; height:88px; display:block;" />
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding:16px 0 0 0;">
+        <div style="font-family:Georgia,'Times New Roman',serif; font-size:21px; letter-spacing:6px; color:#F7F3EA; padding-left:6px;">GUL</div>
+        <div style="font-family:Helvetica,Arial,sans-serif; font-size:9.5px; letter-spacing:3.2px; text-transform:uppercase; color:#E9B366; padding-top:10px; padding-left:3px;">Pray your five</div>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:44px 34px 0 34px;">
+        <h1 style="margin:0; font-family:Georgia,'Times New Roman',serif; font-weight:400; font-size:34px; line-height:1.16; color:#F7F3EA;">
+          Let&rsquo;s get you back in.
+        </h1>
+        <p style="margin:22px 0 0 0; font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.72; color:#C9C6BE;">
+          Choose a new password for <span style="color:#F2EDE3;">%EMAIL%</span>. Your
+          record is untouched &mdash; every day you have noted is exactly where you
+          left it.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td align="center" style="padding:34px 34px 0 34px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+          <tr>
+            <td align="center" bgcolor="#F2EDE3" style="background-color:#F2EDE3; border-radius:999px;">
+              <a href="%LINK%" style="display:inline-block; padding:16px 42px; font-family:Helvetica,Arial,sans-serif; font-size:15px; color:#05080A; text-decoration:none; border-radius:999px;">
+                Choose a new password
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:30px 34px 0 34px;">
+        <p style="margin:0; font-family:Helvetica,Arial,sans-serif; font-size:14px; line-height:1.7; color:#8E8B82;">
+          If you didn&rsquo;t ask for this, you can ignore it. The link expires on its
+          own and your current password keeps working until you use it.
+        </p>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:34px 34px 0 34px;">
+        <div style="height:1px; line-height:1px; font-size:0; background-color:#1C2723;">&nbsp;</div>
+      </td>
+    </tr>
+    <tr>
+      <td align="center" style="padding:22px 34px 48px 34px;">
+        <p style="margin:0; font-family:Helvetica,Arial,sans-serif; font-size:11.5px; line-height:1.85; color:#4E5E58;">
+          If the button doesn&rsquo;t work, paste this into your browser:<br />
+          <span style="color:#6E7B74; word-break:break-all;">%LINK%</span>
+        </p>
+      </td>
+    </tr>
+
+  </table>
+</td></tr>
+</table>
+
+</body>
+</html>
