@@ -77,7 +77,9 @@
     <!-- ── Headline + welcome ──────────────────────────────────────── -->
     <tr>
       <td class="pad" style="padding:52px 56px 0 56px;">
-        <h1 class="h1" style="margin:0; font-family:Georgia,'Times New Roman',serif; font-weight:400; font-size:38px; line-height:1.14; color:#F7F3EA;">
+        <!-- text-decoration:none is not decoration here. Gmail's own stylesheet
+             underlines a bare h1, so without it the headline arrives underlined. -->
+        <h1 class="h1" style="margin:0; font-family:Georgia,'Times New Roman',serif; font-weight:400; font-size:38px; line-height:1.14; color:#F7F3EA; text-decoration:none;">
           Your five,<br />in one flower.
         </h1>
       </td>
@@ -86,9 +88,8 @@
     <tr>
       <td class="pad" style="padding:26px 56px 0 56px;">
         <p style="margin:0; font-family:Helvetica,Arial,sans-serif; font-size:16px; line-height:1.72; color:#C9C6BE;">
-          <span style="color:#F2EDE3;">Gul</span> means flower. Every prayer you note opens a petal &mdash; five noted is
-          a flower in full bloom, and the sun at the centre is coloured by where
-          the sun actually is in your sky.
+          <span style="color:#F2EDE3;">Gul</span> is a simple way to keep track of your five daily prayers.
+          One tap to note each one. That is the whole of it.
         </p>
       </td>
     </tr>
@@ -161,7 +162,7 @@
           <tr>
             <td align="center" bgcolor="#F2EDE3" style="background-color:#F2EDE3; border-radius:999px;">
               <a href="https://experiment.fareedtareen.com/gul/"
-                 style="display:inline-block; padding:16px 42px; font-family:Helvetica,Arial,sans-serif; font-size:15px; color:#05080A; border-radius:999px;">
+                 style="display:inline-block; padding:16px 42px; font-family:Helvetica,Arial,sans-serif; font-size:15px; color:#05080A; border-radius:999px; text-decoration:none;">
                 Open Gul
               </a>
             </td>
@@ -170,22 +171,52 @@
       </td>
     </tr>
 
-    <!-- ── What it will never do ───────────────────────────────────── -->
+    <!-- ── Home Screen ─────────────────────────────────────────────────
+         No email link can add anything to a Home Screen; no link on earth
+         can. What this one does is open Gul on #install, which lands on
+         Settings and opens the install path straight away — the native
+         prompt on Android and desktop, the Share-sheet steps on iPhone.
+         The label says "Add to your Home Screen" and one tap later the
+         person is looking at exactly how to do that, so the promise holds. -->
     <tr>
-      <td class="pad" style="padding:46px 56px 0 56px;">
-        <div style="font-family:Helvetica,Arial,sans-serif; font-size:10px; letter-spacing:2.2px; text-transform:uppercase; color:#6E7B74;">What Gul will never do</div>
-        <p style="margin:14px 0 0 0; font-family:Helvetica,Arial,sans-serif; font-size:14px; line-height:1.7; color:#8E8B82;">
-          Gul knows where the sun is. It cannot know whether you prayed &mdash; so
-          what you note is yours to enter, and yours alone to read. Your times
-          are computed on your own device, your coordinates never leave it, and
-          questions of practice belong with a scholar, not with software.
+      <td align="center" class="pad" style="padding:14px 56px 0 56px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" class="btn">
+          <tr>
+            <td align="center" style="border:1px solid #2A3630; border-radius:999px;">
+              <a href="https://experiment.fareedtareen.com/gul/#install"
+                 style="display:inline-block; padding:15px 34px; font-family:Helvetica,Arial,sans-serif; font-size:14px; color:#C9C6BE; border-radius:999px; text-decoration:none;">
+                Add to your Home Screen
+              </a>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td align="center" class="pad" style="padding:13px 56px 0 56px;">
+        <p style="margin:0; font-family:Helvetica,Arial,sans-serif; font-size:11.5px; line-height:1.6; color:#4E5E58;">
+          On iPhone, open this in Safari.
         </p>
       </td>
     </tr>
 
-    <!-- ── Sign-off ────────────────────────────────────────────────── -->
+    <!-- ── The mark, closing ───────────────────────────────────────────
+         Where the privacy paragraph used to be. The flower is the whole
+         argument the paragraph was making, and it makes it in silence. -->
     <tr>
-      <td class="pad" style="padding:40px 56px 0 56px;">
+      <td align="center" style="padding:52px 0 0 0;">
+        <img src="https://experiment.fareedtareen.com/gul/email/gul-mark-ink-320.png"
+             width="72" height="72" alt=""
+             style="width:72px; height:72px; display:block; opacity:0.85;" />
+      </td>
+    </tr>
+
+    <!-- ── Sign-off ──────────────────────────────────────────────────
+         Centred now, so the mark above and the name below read as one
+         signature rather than a picture with a stray line under it. -->
+    <tr>
+      <td align="center" class="pad" style="padding:20px 56px 0 56px;">
         <p style="margin:0; font-family:Georgia,'Times New Roman',serif; font-size:19px; color:#F2EDE3;">&mdash; Gul</p>
       </td>
     </tr>
