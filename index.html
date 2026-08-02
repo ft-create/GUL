@@ -23,11 +23,34 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="GUL">
 <link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<!-- iOS ignores SVG here and will screenshot the page for the Home Screen
+     icon if this is missing — which is exactly what it was doing. PNG, and
+     rendered on the ink card, because iOS composites transparency onto
+     white and a cream flower would disappear. -->
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
 <link rel="manifest" href="./manifest.webmanifest">
+
+<script>
+  /* beforeinstallprompt fires early — often before a deferred module has
+     even parsed. Missing it means the install button has nothing to fire
+     and silently never appears, so it is caught here in the head and
+     handed to install.js through window. */
+  window.__gulInstallEvent = null;
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    window.__gulInstallEvent = e;
+    window.dispatchEvent(new Event('gul:installable'));
+  });
+  window.addEventListener('appinstalled', () => {
+    window.__gulInstallEvent = null;
+    window.dispatchEvent(new Event('gul:installed'));
+  });
+</script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap">
-<link rel="stylesheet" href="./styles.css?v=20">
+<link rel="stylesheet" href="./styles.css?v=22">
 <style>.auth-overlay[hidden]{display:none}</style>
 
 <script>
@@ -182,12 +205,18 @@
       </div>
     </div>
     <div class="month-grid" id="month-grid"></div>
-    <p class="quiet">A day with four petals is a day you noted four prayers.</p>
+    <p class="quiet">A day with four petals is a day you noted four prayers. Tap any day to correct it.</p>
   </section>
 
   <!-- ── Settings ──────────────────────────────────────────────────── -->
   <section id="settings" class="sheet">
     <div class="sheet-head"><h2>Settings</h2></div>
+
+    <!-- Filled by install.js, and left empty on any browser that cannot
+         install or is already installed. It sits above Account because a
+         person who wants Gul on their Home Screen usually wants it before
+         they think about accounts. -->
+    <div id="install-slot" hidden></div>
 
     <h3>Account</h3>
     <div class="place-card" id="account-card">
@@ -245,6 +274,26 @@
   <span class="foot-note">Times are computed astronomically in your browser. Notes are encrypted in transit and visible only to you.</span>
 </footer>
 
+<!-- ── The day editor ───────────────────────────────────────────────────
+     Opened from any past or present day in the month grid. The five rows
+     are the same component as Today's, because marking a prayer should
+     feel identical whether you are doing it now or fixing last Tuesday. -->
+<div class="day-scrim" id="day-scrim" hidden>
+  <div class="day-sheet" role="dialog" aria-modal="true" aria-labelledby="day-sheet-date">
+    <button class="day-x" id="day-sheet-close" type="button" aria-label="Close">✕</button>
+    <div class="day-sheet-head">
+      <div class="day-sheet-kicker" id="day-sheet-count">—</div>
+      <h2 class="day-sheet-date" id="day-sheet-date">—</h2>
+    </div>
+    <div class="day-table" id="day-sheet-rows"></div>
+    <p class="quiet" id="day-sheet-note"></p>
+    <div class="day-sheet-nav">
+      <button id="day-sheet-prev" type="button">‹ Previous day</button>
+      <button id="day-sheet-next" type="button">Next day ›</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Auth modal ──────────────────────────────────────────────────── -->
 <div class="auth-overlay" id="auth-overlay" hidden>
   <div class="auth-card" role="dialog" aria-modal="true" aria-labelledby="auth-title">
@@ -273,6 +322,6 @@
   </div>
 </div>
 
-<script type="module" src="./app.js?v=20"></script>
+<script type="module" src="./app.js?v=22"></script>
 </body>
 </html>

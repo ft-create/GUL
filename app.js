@@ -4,9 +4,10 @@
 
 import {
   solarDay, altitudeAt, shadowRatioAt, windows, fmtMinutes, METHODS,
-} from './solar.js?v=20';
-import { QUICK, searchCities } from './cities.js?v=20';
-import { Sync } from './firebase.js?v=20';
+} from './solar.js?v=22';
+import { QUICK, searchCities } from './cities.js?v=22';
+import { Sync } from './firebase.js?v=22';
+import { initInstall } from './install.js?v=22';
 /* ── Why every internal import carries ?v= ───────────────────────────────
    index.html versions styles.css and app.js, but a module graph is invisible
    to it: app.js pulls solar.js, cities.js and firebase.js by bare path, so a
@@ -219,7 +220,10 @@ function notePrayer(key, prayer) {
   const opening = !isNoted(key, prayer);
   toggleNote(key, prayer);
   renderAll();
-  if (opening) bloom(KEYS.indexOf(prayer));
+  /* The bloom belongs to today's flower. Correcting last Tuesday from the
+     History grid must not make the flower on Today celebrate — that would
+     be the app reacting to a date it is not showing. */
+  if (opening && key === todayKey()) bloom(KEYS.indexOf(prayer));
 }
 
 /* Merge a remote day doc: newest write wins. */
@@ -269,6 +273,10 @@ const el = {
         phase: $('ap-phase'), meta: $('ap-meta'), scrub: $('ap-scrub') },
   ttDate: $('tt-date'), ttRows: $('tt-rows'),
   monthTitle: $('month-title'), monthGrid: $('month-grid'),
+  dayScrim: $('day-scrim'), daySheetDate: $('day-sheet-date'),
+  daySheetCount: $('day-sheet-count'), daySheetRows: $('day-sheet-rows'),
+  daySheetNote: $('day-sheet-note'), daySheetClose: $('day-sheet-close'),
+  daySheetPrev: $('day-sheet-prev'), daySheetNext: $('day-sheet-next'),
   csRange: $('cs-range'), csStreak: $('cs-streak'), csBest: $('cs-best'),
   csRate: $('cs-rate'), csBars: $('cs-bars'), csNote: $('cs-note'),
   placeName: $('place-name'), placeMeta: $('place-meta'), placeQibla: $('place-qibla'),
@@ -792,12 +800,151 @@ function drawHistory() {
   for (let d = 1; d <= daysInMonth; d++) {
     const key = keyOf(my, mm, d);
     const n = notes[key] ? Object.keys(notes[key].p).length : 0;
-    const cell = document.createElement('div');
-    cell.className = 'm-cell' + (key === tKey ? ' today' : '') + (key > tKey ? ' future' : '');
+    const future = key > tKey;
+
+    /* A real button, not a div with a handler: the month grid is now the
+       way you correct a day you forgot to mark, so it has to be reachable
+       by keyboard and announce itself properly. */
+    const cell = document.createElement('button');
+    cell.type = 'button';
+    cell.className = 'm-cell' + (key === tKey ? ' today' : '') + (future ? ' future' : '');
+    /* Marked so focus can be handed back after the sheet closes. The node
+       itself is no use: saving a correction redraws this whole grid, so the
+       element that was clicked no longer exists by then. */
+    cell.dataset.key = key;
     cell.innerHTML = `${miniFlower(n, 30)}<div class="m-num">${d}</div>`;
+
+    if (future) {
+      /* A day that has not happened cannot have prayers in it. Leaving it
+         tappable would let someone bank tomorrow's five, which would make
+         every number in Consistency a fiction. */
+      cell.disabled = true;
+      cell.setAttribute('aria-label', `${d} — not yet`);
+    } else {
+      cell.setAttribute('aria-label',
+        `${base.toLocaleDateString('en-GB', { month: 'long' })} ${d} — ${n} of five noted. Edit.`);
+      cell.addEventListener('click', () => openDaySheet(key));
+    }
     el.monthGrid.appendChild(cell);
   }
 }
+
+/* ── The day editor ──────────────────────────────────────────────────
+   Tapping a day in the month grid opens its five prayers. Everything it
+   writes goes through notePrayer, which is the same path Today uses — so
+   a correction saves to the device and pushes to the cloud identically,
+   and there is no second, subtly different write path to keep in sync.
+
+   The capability was always there: the Timetable could already mark any
+   past day. But it made you step to that date one day at a time, which
+   nobody does. This is the same power reached from where you actually
+   notice the gap. */
+let daySheetKey = null;
+let daySheetOpenedFrom = null;
+
+function openDaySheet(key) {
+  if (key > todayKey()) return;
+  daySheetKey = key;
+  daySheetOpenedFrom = key;
+  el.dayScrim.hidden = false;
+  document.body.style.overflow = 'hidden';
+  drawDaySheet();
+  el.daySheetClose.focus();
+  document.addEventListener('keydown', onDaySheetKey);
+}
+
+function closeDaySheet() {
+  el.dayScrim.hidden = true;
+  daySheetKey = null;
+  document.body.style.overflow = '';
+  document.removeEventListener('keydown', onDaySheetKey);
+  /* Re-find the cell rather than reusing the node that opened the sheet:
+     any correction made inside redrew the grid, so the original is gone. */
+  const back = daySheetOpenedFrom
+    && el.monthGrid.querySelector(`.m-cell[data-key="${daySheetOpenedFrom}"]`);
+  if (back) back.focus();
+  daySheetOpenedFrom = null;
+}
+
+function onDaySheetKey(e) {
+  if (e.key === 'Escape') { closeDaySheet(); return; }
+  if (e.key !== 'Tab' || el.dayScrim.hidden) return;
+  const f = [...el.dayScrim.querySelectorAll('button:not([disabled])')];
+  if (!f.length) return;
+  const first = f[0], last = f[f.length - 1];
+  if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+  else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+}
+
+function drawDaySheet() {
+  const key = daySheetKey;
+  if (!key) return;
+  const tKey = todayKey();
+  const day = dayFor(key);
+  /* windows() needs tomorrow's Fajr to close Isha, exactly as Today does. */
+  const ws = windows(day, dayFor(shiftKey(key, 1)).fajr);
+  const { y, m, d } = parseKey(key);
+  const dt = new Date(y, m - 1, d);
+
+  el.daySheetDate.textContent =
+    dt.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+
+  const n = KEYS.filter(k => isNoted(key, k)).length;
+  el.daySheetCount.textContent =
+    key === tKey ? 'Today' : (n === 0 ? 'Nothing noted' : `${n} of five noted`);
+
+  el.daySheetRows.innerHTML = '';
+  KEYS.forEach((k, i) => {
+    const w = ws.find(x => x.key === k);
+    const on = isNoted(key, k);
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'dt-row' + (on ? ' on' : '');
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
+
+    /* The disc carries the sun's real position at that prayer on that
+       date — the same computation Today runs, so a day in March looks
+       like March. */
+    const a = w ? altitudeAt(w.from, day) : 0;
+    const lift = w ? Math.max(0, Math.min(1, (a + 8) / Math.max(6, day.peakAlt))) : 0;
+    const r = (4.5 + lift * 4.5).toFixed(1);
+    const fill = w ? sunColour(a, w.from, day) : '#2A3630';
+
+    b.innerHTML =
+      '<span class="dt-disc" aria-hidden="true">' +
+        `<svg viewBox="-30 -30 60 60" width="24" height="24"><circle cx="0" cy="0" r="${r}" fill="${fill}"></circle></svg>` +
+      '</span>' +
+      `<span class="dt-name">${NAMES[i]}</span>` +
+      `<span class="dt-time">${w ? fmtMinutes(w.from) : '—'}</span>` +
+      '<span class="dt-state" aria-hidden="true"><span class="dt-ring"></span><span class="dt-word">Noted</span></span>';
+    b.setAttribute('aria-label',
+      `${NAMES[i]}${w ? ' at ' + fmtMinutes(w.from) : ''} — ${on ? 'noted' : 'not noted'}`);
+
+    b.addEventListener('click', () => {
+      notePrayer(key, k);   /* saves locally, pushes to the cloud, redraws */
+      drawDaySheet();       /* then refresh the sheet itself */
+    });
+    el.daySheetRows.appendChild(b);
+  });
+
+  el.daySheetNote.textContent = key === tKey
+    ? 'Tap a prayer to note it, or tap again to take it back.'
+    : 'Corrections save straight away, on this device and in your account.';
+
+  /* Next stops at today. There is nothing to correct in a day that has
+     not happened yet. */
+  el.daySheetNext.disabled = shiftKey(key, 1) > tKey;
+}
+
+el.daySheetClose.addEventListener('click', closeDaySheet);
+el.dayScrim.addEventListener('click', e => { if (e.target === el.dayScrim) closeDaySheet(); });
+el.daySheetPrev.addEventListener('click', () => { daySheetKey = shiftKey(daySheetKey, -1); drawDaySheet(); });
+el.daySheetNext.addEventListener('click', () => {
+  const next = shiftKey(daySheetKey, 1);
+  if (next > todayKey()) return;
+  daySheetKey = next;
+  drawDaySheet();
+});
 $('month-prev').addEventListener('click', () => { monthOffset--; drawHistory(); });
 $('month-next').addEventListener('click', () => { if (monthOffset < 0) monthOffset++; drawHistory(); });
 
@@ -1114,3 +1261,23 @@ function route() {
 
 addEventListener('hashchange', route);
 route();
+
+/* ── Install ─────────────────────────────────────────────────────────
+   Mounted once, after the views exist. The module decides for itself
+   whether there is anything to show: it removes itself when Gul is
+   already running from the Home Screen, and on Android and desktop it
+   stays hidden until the browser has actually offered a prompt, so the
+   button is never present without something behind it.
+
+   Analytics are a no-op console line for now. The brief names the events
+   it wants tracked; Gul has no analytics pipeline, and inventing one to
+   satisfy a checklist would mean shipping a beacon nobody asked for into
+   an app whose whole posture is that data stays on the device. The event
+   names are here so a real sink can be attached in one place later. */
+initInstall({
+  appName: 'Gul',
+  appIcon: './icons/apple-touch-icon.png',
+  mount: $('install-slot'),
+  dismissalDurationDays: 14,
+  onEvent: name => console.debug('gul_' + name),
+});

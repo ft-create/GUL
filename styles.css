@@ -436,15 +436,170 @@ html, body, button, a, .dt-row, .tt-row, .m-cell { touch-action: manipulation; }
   .cs-fill, .cs-stats b { transition: none; }
 }
 
+/* ── Install ─────────────────────────────────────────────────────────
+   The card sits in Settings and nowhere else. Gul's rule is that the app
+   stays quiet unless it has something true to say, and "you could install
+   me" is not worth interrupting someone's prayer times for. It is never
+   shown at all once the app is running standalone. */
+.inst-card {
+  display: flex; align-items: center; gap: 14px;
+  padding: 15px 16px; margin-bottom: 12px;
+  background: var(--pn-card); border: 1px solid var(--pn-line);
+  border-radius: 18px;
+}
+.inst-icon { flex: none; border-radius: 11px; display: block; }
+.inst-text { flex: 1 1 auto; min-width: 0; }
+.inst-name { font-size: 14px; color: var(--pn-ink-2); }
+.inst-sub { font-size: 12px; color: var(--pn-muted); margin-top: 2px; }
+.inst-btn {
+  flex: none; font: inherit; font-size: 13px; cursor: pointer;
+  padding: 10px 20px; min-height: 44px; border-radius: var(--pn-r-pill);
+  background: var(--pn-ink-2); color: var(--pn-page); border: 1px solid var(--pn-ink-2);
+  transition: opacity var(--pn-dur-tap) var(--pn-ease);
+}
+.inst-btn:hover { opacity: .88; }
+
+/* ── The iOS sheet ───────────────────────────────────────────────────
+   A bottom sheet on the phone, a centred dialog on a wide screen. It is a
+   real dialog — focus trapped, Escape closes, focus returned — because it
+   is the one modal in the app and a keyboard user should not be stranded
+   in it. */
+.inst-scrim {
+  position: fixed; inset: 0; z-index: 200;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(3, 5, 7, .66);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.inst-scrim[hidden] { display: none; }
+.inst-sheet {
+  position: relative; width: 100%; max-width: 460px;
+  background: var(--pn-surface);
+  border: 1px solid var(--pn-line); border-bottom: 0;
+  border-radius: 26px 26px 0 0;
+  padding: 30px 26px calc(30px + env(safe-area-inset-bottom));
+  animation: inst-rise var(--pn-dur-grow) var(--pn-ease);
+}
+@keyframes inst-rise { from { transform: translateY(14px); opacity: 0 } to { transform: none; opacity: 1 } }
+@media (min-width: 620px) {
+  .inst-scrim { align-items: center; }
+  .inst-sheet { border-radius: 26px; border-bottom: 1px solid var(--pn-line); }
+}
+.inst-x {
+  position: absolute; top: 16px; right: 16px;
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+  background: transparent; border: 1px solid var(--pn-line-strong);
+  color: var(--pn-muted); font-size: 12px; line-height: 1;
+}
+.inst-x:hover { color: var(--pn-ink-2); }
+.inst-sheet-icon { border-radius: 14px; display: block; margin-bottom: 16px; }
+.inst-h {
+  font-family: var(--pn-display); font-weight: 400; font-size: 25px;
+  line-height: 1.2; color: var(--pn-ink-2); margin: 0;
+}
+.inst-lede { font-size: 13.5px; color: var(--pn-ink-3); margin: 10px 0 0; }
+/* Not red — Gul has no red. An unusual browser is a condition, not a fault. */
+.inst-warn {
+  font-size: 13px; color: var(--pn-wilt-text); margin: 14px 0 0;
+  padding: 12px 14px; border-radius: 12px;
+  background: rgba(74, 58, 49, .3); border: 1px solid var(--pn-wilt);
+}
+.inst-steps { list-style: none; margin: 20px 0 0; padding: 0; }
+.inst-steps li {
+  display: grid; grid-template-columns: 26px 1fr; gap: 12px; align-items: start;
+  padding: 11px 0; border-top: 1px solid var(--pn-line);
+  font-size: 14px; line-height: 1.6; color: var(--pn-ink-3);
+}
+.inst-steps b { color: var(--pn-ink-2); font-weight: 500; }
+.inst-num {
+  font-family: var(--pn-display); font-size: 16px; color: var(--pn-faint); line-height: 1.5;
+}
+.inst-share {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 22px; height: 22px; border-radius: 6px; vertical-align: -6px;
+  border: 1px solid var(--pn-line-strong); color: var(--pn-sun);
+}
+.inst-ok { width: 100%; margin-top: 22px; }
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .inst-sheet { animation: none; }
+  .inst-btn { transition: none; }
+}
+
+/* ── The day editor ──────────────────────────────────────────────────
+   Same grammar as the install sheet: bottom sheet on a phone, centred
+   dialog on a wide screen, focus trapped, Escape closes. The five rows
+   inside are literally .dt-row — the component Today uses — so marking a
+   prayer feels the same whether it is happening now or being corrected
+   three weeks late. */
+.day-scrim {
+  position: fixed; inset: 0; z-index: 190;
+  display: flex; align-items: flex-end; justify-content: center;
+  background: rgba(3, 5, 7, .68);
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+.day-scrim[hidden] { display: none; }
+.day-sheet {
+  position: relative; width: 100%; max-width: 480px;
+  max-height: 88vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  background: var(--pn-surface);
+  border: 1px solid var(--pn-line); border-bottom: 0;
+  border-radius: 26px 26px 0 0;
+  padding: 28px 22px calc(24px + env(safe-area-inset-bottom));
+  animation: inst-rise var(--pn-dur-grow) var(--pn-ease);
+}
+@media (min-width: 620px) {
+  .day-scrim { align-items: center; }
+  .day-sheet { border-radius: 26px; border-bottom: 1px solid var(--pn-line); }
+}
+.day-x {
+  position: absolute; top: 16px; right: 16px;
+  width: 34px; height: 34px; border-radius: 50%; cursor: pointer;
+  background: transparent; border: 1px solid var(--pn-line-strong);
+  color: var(--pn-muted); font-size: 12px; line-height: 1;
+}
+.day-x:hover { color: var(--pn-ink-2); }
+.day-sheet-head { padding-right: 44px; margin-bottom: 6px; }
+.day-sheet-kicker {
+  font-size: 10px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--pn-label);
+}
+.day-sheet-date {
+  font-family: var(--pn-display); font-weight: 400; font-size: 24px;
+  line-height: 1.2; color: var(--pn-ink-2); margin: 8px 0 0;
+}
+.day-sheet .quiet { margin-top: 12px; }
+.day-sheet-nav { display: flex; gap: 8px; margin-top: 16px; }
+.day-sheet-nav button {
+  flex: 1; font: inherit; font-size: 12px; cursor: pointer;
+  padding: 11px 10px; min-height: 44px; border-radius: var(--pn-r-pill);
+  border: 1px solid var(--pn-line-strong); background: transparent; color: var(--pn-muted);
+  transition: color var(--pn-dur-tap) var(--pn-ease), border-color var(--pn-dur-tap) var(--pn-ease);
+}
+.day-sheet-nav button:hover:not(:disabled) { color: var(--pn-ink-2); border-color: var(--pn-label); }
+.day-sheet-nav button:disabled { opacity: .35; cursor: default; }
+@media (prefers-reduced-motion: reduce) { .day-sheet { animation: none; } }
+
 /* ── History calendar ────────────────────────────────────────────── */
 .month-title { font-family: var(--pn-display); font-size: 23px; color: var(--pn-ink-2); padding: 20px 0 12px; }
 .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .m-cell {
   display: flex; flex-direction: column; align-items: center; gap: 2px;
   padding: 6px 0 8px; border-radius: 10px;
+  font: inherit; background: transparent; border: 1px solid transparent;
+  cursor: pointer; min-height: 56px;
+  transition: background var(--pn-dur-tap) var(--pn-ease),
+              border-color var(--pn-dur-tap) var(--pn-ease);
 }
-.m-cell.today { border: 1px solid rgba(124,217,166,.4); background: rgba(124,217,166,.05); }
-.m-cell.future { opacity: .38; }
+.m-cell:hover:not(:disabled) { background: rgba(242,237,227,.045); border-color: var(--pn-line); }
+.m-cell:focus-visible { outline: 2px solid var(--pn-sun); outline-offset: 2px; }
+.m-cell.today { border-color: rgba(124,217,166,.4); background: rgba(124,217,166,.05); }
+/* A day that has not happened is dimmed and inert — there is nothing in it
+   to correct, and letting someone bank tomorrow's five would turn every
+   number in Consistency into a guess. */
+.m-cell.future, .m-cell:disabled { opacity: .38; cursor: default; }
 .m-num { font-size: 10px; color: var(--pn-label); }
 .m-cell.today .m-num { color: #DFF3E7; }
 .m-cell .m-flower path, .m-cell .m-flower circle { transition: all var(--pn-dur-heal) var(--pn-ease); }

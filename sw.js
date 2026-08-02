@@ -3,11 +3,15 @@
 /* Bump this on every deploy that changes a shell asset. The install
    handler precaches SHELL under this name, so a stale name means a
    returning visitor keeps the old app even after a successful deploy. */
-const CACHE = 'gul-web-v20';
+const CACHE = 'gul-web-v22';
 const SHELL = [
   './', './index.html', './styles.css', './app.js', './firebase.js',
-  './cities.js', './solar.js', './favicon.svg', './gul-mark.svg',
+  './cities.js', './solar.js', './install.js', './favicon.svg', './gul-mark.svg',
   './app-icon.svg', './maskable-icon.svg', './manifest.webmanifest',
+  /* The Home Screen icons. Precached so the install card and the sheet
+     draw instantly and still draw offline. */
+  './icons/apple-touch-icon.png', './icons/icon-192.png',
+  './icons/icon-512.png', './icons/icon-512-maskable.png',
 ];
 
 self.addEventListener('install', e => {
