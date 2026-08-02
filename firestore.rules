@@ -1,38 +1,52 @@
+// GUL  Firestore rules, MIRRORED FROM PRODUCTION (project pray-now-15f80).
+// Pulled from the Firebase Rules API on 2 Aug 2026, not hand-written.
+//
+// This file used to hold only the gulUsers block. Production also carries
+// admins/ and config/ from the earlier app in this project, so deploying the
+// old file would have silently deleted both. Keep this a faithful copy: if
+// you change rules, change them here and deploy, or pull production again.
+// Verified: gulUsers and its days subcollection are guarded by isSelf(uid),
+// and the catch-all denies everything else.
 rules_version = '2';
-// ══════════════════════════════════════════════════════════════════════
-//  GUL — Firestore Security Rules (additive block for pray-now-15f80)
-//
-//  Every user's garden is private: only the signed-in owner can read or
-//  write their own notes and settings. There is no public data and no
-//  cross-user access of any kind.
-//
-//  Deploy from the Firebase console → Firestore → Rules, or with:
-//    firebase deploy --only firestore:rules
-//
-//  If you are merging this into the existing ironcade rules file, paste
-//  the gulUsers block alongside the existing seasons/groups blocks and
-//  keep the closing "everything else is closed" catch-all last.
-// ══════════════════════════════════════════════════════════════════════
 service cloud.firestore {
-  match /databases/{database}/documents {
+match /databases/{database}/documents {
+function signedIn() { return request.auth != null; }
+function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+function isAdmin() { return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid)); }
+function notDisabled(uid) { return !('disabled' in get(/databases/$(database)/documents/users/$(uid)).data) || get(/databases/$(database)/documents/users/$(uid)).data.disabled == false; }
+function allowedUserKeys() { return ['email','displayName','createdAt','lastSeenAt','platform','appVersion','disabled','keys','settings']; }
+match /users/{uid} {
+allow read: if isSelf(uid) || isAdmin();
+allow list: if isAdmin();
+allow create: if isSelf(uid) && request.resource.data.keys().hasOnly(allowedUserKeys()) && request.resource.data.email is string && request.resource.data.disabled == false;
+allow update: if (isSelf(uid) && notDisabled(uid) && request.resource.data.keys().hasOnly(allowedUserKeys()) && request.resource.data.disabled == resource.data.disabled) || (isAdmin() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['disabled']));
+allow delete: if isSelf(uid);
+match /records/{recordId} {
+allow read, write: if isSelf(uid) && notDisabled(uid);
 
-    function signedIn() { return request.auth != null; }
-    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
-
-    // ── GUL: per-user settings + daily prayer notes ──
-    //   gulUsers/{uid}                    { settings, updatedAt }
-    //   gulUsers/{uid}/days/{YYYY-MM-DD}  { p: {...}, u: millis }
+}
+}// ── GUL: per-user settings and daily prayer notes ──
     match /gulUsers/{uid} {
-      allow read, write: if isOwner(uid);
+      allow read, write: if isSelf(uid);
 
       match /days/{date} {
-        allow read, write: if isOwner(uid);
+        allow read, write: if isSelf(uid);
       }
     }
+match /admins/{uid} {
+allow get: if isSelf(uid) || isAdmin();
+allow list: if isAdmin();
+allow write: if false;
 
-    // everything else is closed
-    match /{document=**} {
-      allow read, write: if false;
-    }
-  }
+}
+match /config/{document} {
+allow read: if signedIn();
+allow write: if isAdmin();
+
+}
+match /{document=**} {
+allow read, write: if false;
+
+}
+}
 }
