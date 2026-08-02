@@ -72,7 +72,10 @@ export function initInstall(cfg) {
   if (isStandalone()) {
     mount.hidden = true;
     onEvent('running_standalone');
-    return;
+    /* Still hand back the shape callers expect. A deep link asking to
+       install, arriving at an app that is already installed, should do
+       nothing quietly — not throw. */
+    return { request() {}, openSheet() {}, closeSheet() {}, dismissed: () => false };
   }
 
   const ios = isIOS();
@@ -126,7 +129,10 @@ export function initInstall(cfg) {
   (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(
     () => { if (isStandalone()) mount.hidden = true; });
 
-  btn.addEventListener('click', async () => {
+  /* The install path itself, separate from the button that usually starts
+     it, because the welcome email links straight here with #install and
+     needs the same behaviour without a click. */
+  async function request() {
     onEvent('install_button_clicked');
     if (ios) { openSheet(); return; }
 
@@ -145,7 +151,9 @@ export function initInstall(cfg) {
       onEvent('install_prompt_dismissed');
       rememberDismissal();
     }
-  });
+  }
+
+  btn.addEventListener('click', request);
 
   /* ── The iOS sheet ────────────────────────────────────────────────
      A real dialog: focus is trapped, Escape closes, and focus returns to
@@ -227,5 +235,5 @@ export function initInstall(cfg) {
     live.textContent = msg;
   }
 
-  return { openSheet, closeSheet, dismissed: () => dismissedUntil(dismissalDurationDays) };
+  return { request, openSheet, closeSheet, dismissed: () => dismissedUntil(dismissalDurationDays) };
 }

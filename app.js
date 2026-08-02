@@ -4,10 +4,10 @@
 
 import {
   solarDay, altitudeAt, shadowRatioAt, windows, fmtMinutes, METHODS,
-} from './solar.js?v=22';
-import { QUICK, searchCities } from './cities.js?v=22';
-import { Sync } from './firebase.js?v=22';
-import { initInstall } from './install.js?v=22';
+} from './solar.js?v=23';
+import { QUICK, searchCities } from './cities.js?v=23';
+import { Sync } from './firebase.js?v=23';
+import { initInstall } from './install.js?v=23';
 /* ── Why every internal import carries ?v= ───────────────────────────────
    index.html versions styles.css and app.js, but a module graph is invisible
    to it: app.js pulls solar.js, cities.js and firebase.js by bare path, so a
@@ -1274,10 +1274,33 @@ route();
    satisfy a checklist would mean shipping a beacon nobody asked for into
    an app whose whole posture is that data stays on the device. The event
    names are here so a real sink can be attached in one place later. */
-initInstall({
+const install = initInstall({
   appName: 'Gul',
   appIcon: './icons/apple-touch-icon.png',
   mount: $('install-slot'),
   dismissalDurationDays: 14,
   onEvent: name => console.debug('gul_' + name),
 });
+
+/* ── #install ────────────────────────────────────────────────────────
+   The welcome email links here. It is not a view: it lands on Settings,
+   where the install card lives, and opens the install path immediately —
+   the browser's own prompt on Android and desktop, the Share-sheet steps
+   on iPhone. Replacing the hash rather than setting it keeps #install out
+   of history, so Back returns to the mail rather than re-triggering.
+
+   The wait is for the native branch. beforeinstallprompt fires shortly
+   after load, and a person arriving from a cold tap would otherwise reach
+   request() before the browser had offered anything — the module would
+   correctly stay silent, and the tap would look broken. */
+function installDeepLink() {
+  if ((location.hash || '') !== '#install') return;
+  location.replace('#settings');
+  const go = () => install && install.request && install.request();
+  if (window.__gulInstallEvent) { setTimeout(go, 80); return; }
+  let fired = false;
+  const once = () => { if (!fired) { fired = true; go(); } };
+  window.addEventListener('gul:installable', once, { once: true });
+  setTimeout(once, 1200);
+}
+installDeepLink();
