@@ -42,6 +42,19 @@ function isIOSSafari() {
 
 /* ── Dismissal memory ─────────────────────────────────────────────── */
 
+/* Safari on a Mac. It can install (File > Add to Dock, since Sonoma) but
+   like every other Safari it never fires beforeinstallprompt, so JavaScript
+   cannot start the flow. Without this branch the card hid itself on macOS
+   and the app looked as though it could not be installed, which is untrue.
+   Detection is by exclusion: every Chromium browser on macOS also carries
+   "Safari" in its user-agent string. */
+function isMacSafari() {
+  if (isIOS()) return false;
+  if (navigator.platform !== 'MacIntel' && !/Mac OS X/.test(navigator.userAgent)) return false;
+  const ua = navigator.userAgent;
+  return /Safari/.test(ua) && !/Chrome|Chromium|Edg|OPR|Brave/.test(ua);
+}
+
 const DISMISS_KEY = 'gul.install.dismissed';
 
 function dismissedUntil(days) {
@@ -80,6 +93,8 @@ export function initInstall(cfg) {
 
   const ios = isIOS();
   const iosSafari = isIOSSafari();
+  const macSafari = isMacSafari();
+  const manualOnly = ios || macSafari;
 
   /* On Android and desktop the button is only honest if the browser has
      actually offered us a prompt. Until then there is nothing to trigger,
@@ -97,7 +112,7 @@ export function initInstall(cfg) {
       `<img class="inst-icon" src="${appIcon}" width="46" height="46" alt="">` +
       '<div class="inst-text">' +
         `<div class="inst-name">Install ${appName}</div>` +
-        '<div class="inst-sub">Add to your Home Screen</div>' +
+        `<div class="inst-sub">${macSafari ? 'Add to your Dock' : 'Add to your Home Screen'}</div>` +
       '</div>' +
       '<button class="inst-btn" type="button">Install</button>' +
     '</div>';
@@ -109,7 +124,7 @@ export function initInstall(cfg) {
     /* Three reasons to show the card, and one to hide it:
        iOS can always be instructed; other browsers only once they have
        given us a prompt to fire. */
-    const show = ios || haveNativePrompt();
+    const show = manualOnly || haveNativePrompt();
     mount.hidden = !show;
     if (show) onEvent('install_prompt_viewed');
   }
@@ -134,7 +149,7 @@ export function initInstall(cfg) {
      needs the same behaviour without a click. */
   async function request() {
     onEvent('install_button_clicked');
-    if (ios) { openSheet(); return; }
+    if (manualOnly) { openSheet(); return; }
 
     const evt = window.__gulInstallEvent;
     if (!evt) return;                     /* nothing to fire; stay silent */
@@ -168,12 +183,16 @@ export function initInstall(cfg) {
       '<div class="inst-sheet" role="dialog" aria-modal="true" aria-labelledby="inst-h">' +
         '<button class="inst-x" type="button" aria-label="Close">✕</button>' +
         `<img class="inst-sheet-icon" src="${appIcon}" width="60" height="60" alt="">` +
-        `<h2 class="inst-h" id="inst-h">Add ${appName} to your Home Screen</h2>` +
+        `<h2 class="inst-h" id="inst-h">Add ${appName} to your ${macSafari ? 'Dock' : 'Home Screen'}</h2>` +
         '<p class="inst-lede">Faster to open, and it runs full screen with no browser bar.</p>' +
-        (iosSafari ? '' :
+        (manualOnly && !iosSafari && !macSafari ?
           '<p class="inst-warn">You are not in Safari. Adding to the Home Screen only ' +
-          'works from Safari on iPhone and iPad — open this page there first.</p>') +
+          'works from Safari on iPhone and iPad — open this page there first.</p>' : '') +
         '<ol class="inst-steps">' +
+          (macSafari ?
+            '<li><span class="inst-num">1</span><span>Open the <b>File</b> menu in the menu bar at the top of the screen.</span></li>' +
+            '<li><span class="inst-num">2</span><span>Choose <b>Add to Dock</b>.</span></li>' +
+            '<li><span class="inst-num">3</span><span>Click <b>Add</b>. The flower appears in your Dock.</span></li>' : (
           '<li><span class="inst-num">1</span><span>Tap the <b>Share</b> button ' +
             '<span class="inst-share" aria-hidden="true">' +
               '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
@@ -181,7 +200,7 @@ export function initInstall(cfg) {
               '<path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"></path></svg>' +
             '</span> at the bottom of Safari.</span></li>' +
           '<li><span class="inst-num">2</span><span>Scroll and choose <b>Add to Home Screen</b>.</span></li>' +
-          '<li><span class="inst-num">3</span><span>Tap <b>Add</b>. The flower appears on your Home Screen.</span></li>' +
+          '<li><span class="inst-num">3</span><span>Tap <b>Add</b>. The flower appears on your Home Screen.</span></li>')) +
         '</ol>' +
         '<button class="inst-ok primary" type="button">Got it</button>' +
       '</div>';
