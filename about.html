@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Gul — Pray your five</title>
+<meta name="description" content="Gul is a prayer tracker. Five prayers, five petals — one opens each time you pray. Prayer times where you are, and a private place to note your five.">
+<meta name="theme-color" content="#05080A">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./icons/apple-touch-icon.png">
+<link rel="canonical" href="https://experiment.fareedtareen.com/gul/about">
+<meta property="og:title" content="Gul — Pray your five">
+<meta property="og:description" content="A prayer tracker. Five prayers, five petals — one opens each time you pray.">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap">
+<style>
+  /* Gul's own tokens, lifted verbatim from styles.css. This page is
+     deliberately standalone — no app shell, no JavaScript, no sign-in gate.
+     A reviewer with scripting off must still be able to read every word. */
+  :root{
+    --pn-page:#05080A; --pn-card:#0E1513; --pn-line:#1C2723;
+    --pn-sun:#E9B366; --pn-dusk:#DE8B52; --pn-leaf:#7CD9A6;
+    --pn-ink:#F7F3EA; --pn-ink-3:#C9C6BE; --pn-muted:#8E8B82; --pn-label:#6E7B74;
+    --pn-display:'Instrument Serif',Georgia,serif; --pn-ui:'DM Sans',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--pn-page);color:var(--pn-ink-3);
+       font-family:var(--pn-ui);font-size:15px;line-height:1.75;
+       -webkit-font-smoothing:antialiased}
+  .wrap{max-width:64ch;margin:0 auto;padding:clamp(40px,8vh,88px) clamp(20px,6vw,32px) 80px}
+  header{text-align:center;margin-bottom:52px}
+  header img{width:64px;height:64px;display:block;margin:0 auto 20px}
+  h1{font-family:var(--pn-display);font-weight:400;font-size:44px;line-height:1.1;
+     letter-spacing:.02em;color:var(--pn-ink);margin:0}
+  .slogan{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;
+          color:var(--pn-sun);margin-top:12px}
+  h2{font-family:var(--pn-display);font-weight:400;font-size:25px;color:var(--pn-ink);
+     margin:44px 0 10px}
+  p{margin:0 0 16px}
+  .lede{font-size:18px;line-height:1.65;color:var(--pn-ink)}
+  em{color:var(--pn-ink);font-style:italic}
+  ul{margin:0 0 16px;padding-left:1.15em}
+  li{margin-bottom:9px}
+  a{color:var(--pn-sun);text-decoration:none;border-bottom:1px solid rgba(233,179,102,.35)}
+  a:hover{border-bottom-color:var(--pn-sun)}
+  .card{background:var(--pn-card);border:1px solid var(--pn-line);border-radius:24px;
+        padding:26px 28px;margin:26px 0}
+  .card h2{margin-top:0}
+  .cta{display:flex;gap:12px;flex-wrap:wrap;margin-top:36px}
+  .cta a{display:inline-flex;align-items:center;min-height:48px;padding:0 26px;
+         border-radius:999px;font-size:14.5px;border:1px solid var(--pn-line);
+         color:var(--pn-ink);border-bottom-width:1px}
+  .cta a.primary{background:var(--pn-ink);color:var(--pn-page);border-color:var(--pn-ink)}
+  footer{margin-top:56px;padding-top:24px;border-top:1px solid var(--pn-line);
+         font-size:12.5px;color:var(--pn-label)}
+  footer a{color:var(--pn-muted);border-bottom-color:rgba(142,139,130,.3)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <img src="./gul-mark.svg" alt="The Gul mark: five petals around a sun" width="64" height="64">
+    <h1>Gul</h1>
+    <div class="slogan">Pray your five</div>
+  </header>
+
+  <p class="lede"><em>Gul</em> is a prayer tracker. Five prayers, five petals —
+  one opens each time you pray, and a day fully prayed is a flower in bloom.</p>
+
+  <p>Gul means flower. The app shows the five daily prayer times for wherever
+  you are, and gives you a quiet, private place to note the ones you have
+  prayed. That is the whole of it. There is no feed, no streak to defend in
+  public, and nobody else can see your record.</p>
+
+  <h2>What it does</h2>
+  <ul>
+    <li><strong>Prayer times where you are.</strong> Calculated on your own
+      device from the position of the sun, using the calculation method you
+      choose.</li>
+    <li><strong>A place to note your five.</strong> One tap marks a prayer and
+      opens a petal.</li>
+    <li><strong>A record you can look back on.</strong> Each day becomes its own
+      small flower, and you can correct any past day.</li>
+    <li><strong>It works offline and without an account.</strong> Signing in is
+      optional; it exists so your record survives a lost phone and appears on
+      your other devices.</li>
+  </ul>
+
+  <div class="card">
+    <h2>Signing in with Google</h2>
+    <p>Signing in is optional. Gul works fully without an account, keeping
+    everything on the device you are using.</p>
+    <p>If you choose to sign in with Google, Gul receives your
+    <strong>name, email address and profile picture</strong> from your Google
+    account. It uses them for one purpose: to identify your account so your
+    prayer record can be saved and synced back to you. Gul does not post
+    anything to your Google account, does not read your contacts, calendar,
+    Drive or mail, and does not request any Google permission beyond basic
+    sign-in.</p>
+    <p>Your prayer record is never sold, never used for advertising, and never
+    shared with anyone.</p>
+  </div>
+
+  <h2>Who makes it</h2>
+  <p>Gul is made by Fareed Tareen. Questions, or anything that looks wrong:
+  <a href="mailto:ft@fareedtareen.com">ft@fareedtareen.com</a>.</p>
+
+  <p>Gul is a tool for keeping your own record. It is not a religious
+  authority — questions of practice belong with a scholar, not with software.</p>
+
+  <div class="cta">
+    <a class="primary" href="./">Open Gul</a>
+    <a href="./privacy">Privacy policy</a>
+  </div>
+
+  <footer>
+    Gul — Pray your five ·
+    <a href="./privacy">Privacy</a> ·
+    <a href="mailto:ft@fareedtareen.com">ft@fareedtareen.com</a>
+  </footer>
+
+</div>
+</body>
+</html>

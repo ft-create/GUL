@@ -4,10 +4,10 @@
 
 import {
   solarDay, altitudeAt, shadowRatioAt, windows, fmtMinutes, METHODS,
-} from './solar.js?v=23';
-import { QUICK, searchCities } from './cities.js?v=23';
-import { Sync } from './firebase.js?v=23';
-import { initInstall } from './install.js?v=23';
+} from './solar.js?v=26';
+import { QUICK, searchCities } from './cities.js?v=26';
+import { Sync } from './firebase.js?v=26';
+import { initInstall } from './install.js?v=26';
 /* ── Why every internal import carries ?v= ───────────────────────────────
    index.html versions styles.css and app.js, but a module graph is invisible
    to it: app.js pulls solar.js, cities.js and firebase.js by bare path, so a
@@ -184,12 +184,19 @@ function toggleNote(key, prayer) {
   if (dayN.p[prayer]) delete dayN.p[prayer]; else dayN.p[prayer] = true;
   dayN.u = Date.now();
   if (Object.keys(dayN.p).length) notes[key] = dayN;
-  else {
-    delete notes[key];
-    Sync.deleteDay(key).catch(() => {});
-  }
+  else delete notes[key];
   saveNotes();
-  if (notes[key]) Sync.pushDay(key, notes[key].p, notes[key].u).catch(() => {});
+  /* Unmarking every prayer used to hard-delete the cloud document, and a
+     deleted document is invisible to the next device: its snapshot simply
+     never mentions the day, so remoteU has no entry, the stale local copy
+     looks newer, and the day comes back. Deletion was the only operation
+     in the whole model that did not converge.
+
+     A tombstone — an empty p with a fresh timestamp — travels the same
+     newest-wins path as every other edit, and mergeRemoteDay already
+     removes a day whose p is empty. Nothing special to remember. */
+  const out = notes[key] || { p: {}, u: dayN.u };
+  Sync.pushDay(key, out.p, out.u).catch(() => {});
 }
 
 /* ── The bloom ──────────────────────────────────────────────────────
@@ -532,31 +539,60 @@ let scrubT = null;
 })();
 
 /* ── Now / next ──────────────────────────────────────────────────── */
+/* Returns the prayer now standing, and — this is the part that matters —
+   the calendar day that prayer belongs to.
+
+   Between midnight and Fajr no window has started yet today, so the
+   prayer still standing is YESTERDAY's Isha. The old code fell back to
+   ws[4], which is correct about the name and wrong about everything
+   else: it printed tonight's Isha start time (nineteen hours in the
+   future, labelled "Now") and, worse, wired the button to today's key.
+   Tapping it at 3am banked last night's Isha against tomorrow, left
+   yesterday unmarked, and broke the streak — in a prayer tracker, the
+   one action that must never be wrong. */
 function lastAndNext(t, key) {
   const day = dayFor(key);
   const ws = windows(day, dayFor(shiftKey(key, 1)).fajr);
-  const last = ws.filter(w => w.from <= t).slice(-1)[0] || ws[4];
+  const started = ws.filter(w => w.from <= t);
+
+  if (!started.length) {
+    /* Before today's Fajr. Resolve against yesterday and hand the caller
+       yesterday's key, so the time shown and the day written both belong
+       to the prayer actually standing. */
+    const yKey = shiftKey(key, -1);
+    const yDay = dayFor(yKey);
+    const yWs = windows(yDay, day.fajr);
+    return { day: yDay, dayKey: yKey, last: yWs[4], next: { ...ws[0] }, crossedMidnight: true };
+  }
+
+  const last = started[started.length - 1];
   const next = ws.find(w => w.from > t) || { ...ws[0], from: ws[0].from + 1440 };
-  return { day, last, next };
+  return { day, dayKey: key, last, next, crossedMidnight: false };
 }
 
 function drawNow(t, key) {
-  const { day, last, next } = lastAndNext(t, key);
+  const { day, dayKey, last, next, crossedMidnight } = lastAndNext(t, key);
   const until = Math.max(0, Math.round(next.from - t));
   el.nowName.textContent = last.name;
-  el.nowTime.textContent = fmtMinutes(last.from);
+  /* Yesterday's Isha started before midnight, so its clock time is on the
+     far side of the date line. Saying so is kinder than showing a time
+     that looks like it has not happened yet. */
+  el.nowTime.textContent = fmtMinutes(last.from) + (crossedMidnight ? ' yesterday' : '');
   el.nextLabel.textContent = `${next.name} in ${Math.floor(until / 60)}h ${until % 60}m`;
 
   const q = qiblaBearing(place());
   el.qiblaLine.textContent = `Qibla ${q.toFixed(0)}° ${compass16(q)} from where you are`;
 
   const ki = last.key;
-  const noted = isNoted(key, ki);
+  /* dayKey, never key. This is the whole of the midnight fix. */
+  const noted = isNoted(dayKey, ki);
   el.markNow.textContent = noted ? `${last.name} noted` : `Note ${last.name}`;
   el.markNow.classList.toggle('noted', noted);
-  el.markNow.onclick = () => notePrayer(key, ki);
+  el.markNow.onclick = () => notePrayer(dayKey, ki);
 
-  drawDayTable(key, day, last);
+  /* The table below still shows the day on screen, which is today. Only
+     the standing prayer reaches back across midnight. */
+  drawDayTable(key, dayFor(key), crossedMidnight ? null : last);
 }
 
 /* ── Header dates & place ────────────────────────────────────────── */
@@ -596,7 +632,10 @@ function drawTimetable() {
     ...ws.slice(1),
   ];
 
-  const { last } = key === tKey ? lastAndNext(p.min, key) : { last: null };
+  /* Before today's Fajr the standing prayer belongs to yesterday, so
+     nothing on today's timetable should be highlighted as "now". */
+  const ln = key === tKey ? lastAndNext(p.min, key) : null;
+  const last = ln && !ln.crossedMidnight ? ln.last : null;
   const canMark = key <= tKey;
 
   el.ttRows.innerHTML = '';
@@ -1055,6 +1094,7 @@ function drawAuth() {
         : 'Signed in — your notes and settings sync to the cloud and across your devices.';
     el.accountAction.textContent = 'Sign out';
     el.accountAction.onclick = () => Sync.signOut();
+    $('danger-zone').hidden = false;
     /* Three states, not two. "Synced" is now a claim the app has to earn:
        it means the cloud actually answered, not merely that someone is
        signed in. The old version said it the instant you signed in, so for
@@ -1075,24 +1115,60 @@ function drawAuth() {
       : 'Your notes live on this device. Create an account to keep them safe and see them on any device.';
     el.accountAction.textContent = 'Sign in or create an account';
     el.accountAction.onclick = openAuth;
+    /* Nothing to delete while signed out, and the control disappears
+       rather than greying out — a disabled destructive button is still an
+       invitation to press it. */
+    $('danger-zone').hidden = true;
+    $('delete-confirm').hidden = true;
     el.syncLine.textContent = 'Local only — sign in to sync';
     el.syncLine.classList.remove('on');
   }
 }
 
+/* ── The auth card ───────────────────────────────────────────────────
+   Three steps, one decision each. The old card put Sign in and Create an
+   account side by side under a single form, which asked the person to
+   decide after filling it in — and let an empty form reach Firebase,
+   whose reply ("auth/missing-email") was written for developers. */
+
+const AUTH_STEPS = ['door', 'signin', 'signup'];
+let authStep = 'door';
+
+function showStep(step) {
+  authStep = step;
+  AUTH_STEPS.forEach(s => { const n = $('auth-step-' + s); if (n) n.hidden = (s !== step); });
+  /* Google belongs on the door only; on a named step it is a third path
+     nobody asked for. */
+  const g = $('auth-google'), or = document.querySelector('.auth-or');
+  const onDoor = step === 'door';
+  if (g && !g.dataset.unavailable) g.hidden = !onDoor;
+  if (or) or.hidden = !onDoor || (g && g.dataset.unavailable === '1');
+  clearAuthErrors();
+  const focus = { door: null, signin: 'auth-email', signup: 'auth-email2' }[step];
+  if (focus) setTimeout(() => $(focus).focus(), 50);
+}
+
+function clearAuthErrors() {
+  ['auth-email-err', 'auth-pass-err', 'auth-email2-err', 'auth-pass2-err',
+   'auth-error', 'auth-error2'].forEach(id => {
+    const n = $(id); if (n) { n.textContent = ''; n.style.color = ''; }
+  });
+}
+
 function openAuth() {
   el.authOverlay.hidden = false;
-  el.authError.style.color = '';
-  el.authError.textContent = '';
-  setTimeout(() => el.authEmail.focus(), 50);
+  showStep('door');
   /* Hide the Google button outright when the project cannot serve it, rather
      than offering something that can only disappoint. It reappears on its own
      the moment the domain is authorized in the console — no deploy needed. */
   const g = $('auth-google'), or = document.querySelector('.auth-or');
   if (!g) return;
-  g.hidden = true; if (or) or.hidden = true;
+  g.hidden = true; g.dataset.unavailable = '1'; if (or) or.hidden = true;
   if (!Sync._fb) return;
-  Sync.googleAvailable().then(ok => { g.hidden = !ok; if (or) or.hidden = !ok; });
+  Sync.googleAvailable().then(ok => {
+    g.dataset.unavailable = ok ? '' : '1';
+    if (authStep === 'door') { g.hidden = !ok; if (or) or.hidden = !ok; }
+  });
 }
 function closeAuth() { el.authOverlay.hidden = true; }
 
@@ -1103,61 +1179,190 @@ el.authBtn.addEventListener('click', () => {
 $('auth-close').addEventListener('click', closeAuth);
 el.authOverlay.addEventListener('click', e => { if (e.target === el.authOverlay) closeAuth(); });
 
+/* Carry a typed address across the step boundary. Somebody who typed their
+   email, then realised they meant the other path, should not type it twice. */
+$('auth-go-signin').addEventListener('click', () => {
+  $('auth-email').value = $('auth-email2').value || $('auth-email').value;
+  showStep('signin');
+});
+$('auth-go-signup').addEventListener('click', () => {
+  $('auth-email2').value = $('auth-email').value || $('auth-email2').value;
+  showStep('signup');
+});
+$('auth-back-1').addEventListener('click', () => showStep('door'));
+$('auth-back-2').addEventListener('click', () => showStep('door'));
+
+/* ── Errors ──────────────────────────────────────────────────────────
+   Nothing a provider wrote ever reaches the interface. An unmapped code
+   becomes a plain sentence here and the real one goes to the console for
+   us — a person should never have to read the word "auth/". */
 function authError(e) {
   const map = {
-    'auth/invalid-email': 'That email does not look right.',
-    'auth/user-not-found': 'No account with that email — create one below.',
-    'auth/wrong-password': 'That password does not match.',
-    'auth/invalid-credential': 'Email or password does not match.',
-    'auth/email-already-in-use': 'That email already has an account — sign in instead.',
-    'auth/weak-password': 'Password needs at least 6 characters.',
-    'auth/network-request-failed': 'No connection — the app still works locally.',
-    'auth/operation-not-allowed': 'That sign-in method is not enabled yet in the Firebase console.',
-    /* Both of these are console settings, not bugs, and both are invisible
-       until someone actually presses the Google button — so name the fix
-       instead of saying "something went wrong". */
-    'auth/unauthorized-domain': 'Google sign-in is not allowed from this address yet — add it under Firebase → Authentication → Settings → Authorized domains.',
+    'auth/invalid-email': 'That does not look like an email address.',
+    /* These three are deliberately identical. Distinguishing "no such
+       account" from "wrong password" tells a stranger which addresses are
+       registered here — a free enumeration oracle. One sentence closes it. */
+    'auth/user-not-found': 'That email and password do not match.',
+    'auth/wrong-password': 'That email and password do not match.',
+    'auth/invalid-credential': 'That email and password do not match.',
+    'auth/email-already-in-use': 'That address already has an account. Sign in instead.',
+    'auth/weak-password': 'Use at least 6 characters.',
+    'auth/missing-password': 'Enter a password.',
+    'auth/missing-email': 'Enter your email address.',
+    'auth/too-many-requests': 'Too many attempts. Wait a moment and try again.',
+    'auth/network-request-failed': 'No connection — the app still works on this device.',
+    'auth/operation-not-allowed': 'That sign-in method is not enabled yet.',
+    'auth/unauthorized-domain': 'Google sign-in is not allowed from this address yet.',
+    /* A closed popup is a change of mind, not a failure. Say nothing. */
     'auth/popup-closed-by-user': '',
     'auth/cancelled-popup-request': '',
-    'auth/account-exists-with-different-credential': 'That address already has a password account here. Sign in with the email and password instead.',
+    'auth/popup-blocked': 'Your browser blocked the sign-in window. Allow popups, or use an email instead.',
+    'auth/account-exists-with-different-credential':
+      'That address already has a password account here. Sign in with the email and password instead.',
   };
-  return map[e?.code] || e?.message || 'Something went wrong.';
+  if (e && e.code && e.code in map) return map[e.code];
+  console.error('Gul: unmapped auth error', e);
+  return 'Something went wrong. Please try again.';
 }
 
-async function doAuth(mode) {
-  const email = el.authEmail.value.trim();
-  const pass = el.authPass.value;
-  el.authError.textContent = '';
+/* ── Validation ──────────────────────────────────────────────────────
+   Caught at the field, before any network call. An empty box is not an
+   error condition worth a round trip; it is a box that is not filled in. */
+function fieldErr(id, msg) { const n = $(id); if (n) n.textContent = msg || ''; return !msg; }
+
+function validate(emailId, passId, emailErrId, passErrId, { min = 0 } = {}) {
+  const email = $(emailId).value.trim();
+  const pass  = $(passId).value;
+  let ok = true;
+  if (!email) ok = fieldErr(emailErrId, 'Enter your email address.') && ok;
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+    ok = fieldErr(emailErrId, 'That does not look like an email address.') && ok;
+  else fieldErr(emailErrId, '');
+
+  if (!pass) ok = fieldErr(passErrId, 'Enter a password.') && ok;
+  else if (min && pass.length < min) ok = fieldErr(passErrId, `Use at least ${min} characters.`) && ok;
+  else fieldErr(passErrId, '');
+
+  return ok ? { email, pass } : null;
+}
+
+/* A submit that sits silent for two seconds reads as broken. */
+async function withBusy(btn, label, fn) {
+  const was = btn.textContent;
+  btn.disabled = true; btn.textContent = label;
+  try { return await fn(); }
+  finally { btn.disabled = false; btn.textContent = was; }
+}
+
+async function doSignIn() {
+  clearAuthErrors();
+  const v = validate('auth-email', 'auth-pass', 'auth-email-err', 'auth-pass-err');
+  if (!v) return;
   if (!Sync._fb) { el.authError.textContent = 'The cloud could not be reached from here.'; return; }
   try {
-    if (mode === 'in') { await Sync.signIn(email, pass); closeAuth(); return; }
-    await Sync.signUp(email, pass);
+    await withBusy($('auth-signin'), 'Signing in…', () => Sync.signIn(v.email, v.pass));
+    closeAuth();
+  } catch (e) { el.authError.textContent = authError(e); }
+}
+
+async function doSignUp() {
+  clearAuthErrors();
+  const err = $('auth-error2');
+  const v = validate('auth-email2', 'auth-pass2', 'auth-email2-err', 'auth-pass2-err', { min: 6 });
+  if (!v) return;
+  if (!Sync._fb) { err.textContent = 'The cloud could not be reached from here.'; return; }
+  try {
+    await withBusy($('auth-signup'), 'Creating account…', () => Sync.signUp(v.email, v.pass));
     /* The account is live and already syncing. Hold the card open for a
        breath so the person knows an email is on its way, rather than
        wondering later why one arrived. */
-    el.authError.style.color = 'var(--pn-noted)';
-    el.authError.textContent = 'Account created — check your inbox to confirm your address.';
-    setTimeout(() => { el.authError.style.color = ''; closeAuth(); }, 2600);
+    err.style.color = 'var(--pn-noted)';
+    err.textContent = 'Account created — check your inbox.';
+    setTimeout(() => { err.style.color = ''; closeAuth(); }, 2600);
   } catch (e) {
-    el.authError.style.color = '';
-    el.authError.textContent = authError(e);
+    err.style.color = '';
+    err.textContent = authError(e);
   }
 }
-$('auth-signin').addEventListener('click', () => doAuth('in'));
-$('auth-signup').addEventListener('click', () => doAuth('up'));
+
+$('auth-signin').addEventListener('click', doSignIn);
+$('auth-signup').addEventListener('click', doSignUp);
+$('auth-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doSignIn(); });
+$('auth-pass2').addEventListener('keydown', e => { if (e.key === 'Enter') doSignUp(); });
+
 $('auth-google').addEventListener('click', async () => {
-  el.authError.style.color = '';
-  el.authError.textContent = '';
+  clearAuthErrors();
   if (!Sync._fb) { el.authError.textContent = 'The cloud could not be reached from here.'; return; }
   try { await Sync.signInWithGoogle(); closeAuth(); }
-  catch (e) { el.authError.textContent = authError(e); }
+  catch (e) {
+    const m = authError(e);
+    if (m) { showStep('signin'); el.authError.textContent = m; }
+  }
 });
-el.authPass.addEventListener('keydown', e => { if (e.key === 'Enter') doAuth('in'); });
+
 $('auth-reset').addEventListener('click', async () => {
-  const email = el.authEmail.value.trim();
-  if (!email) { el.authError.textContent = 'Enter your email first.'; return; }
-  try { await Sync.resetPassword(email); el.authError.textContent = 'Reset email sent — check your inbox.'; }
-  catch (e) { el.authError.textContent = authError(e); }
+  clearAuthErrors();
+  const email = $('auth-email').value.trim();
+  if (!email) { fieldErr('auth-email-err', 'Enter your email address first.'); return; }
+  try {
+    await Sync.resetPassword(email);
+    el.authError.style.color = 'var(--pn-noted)';
+    el.authError.textContent = 'Reset email sent — check your inbox.';
+  }
+  catch (e) { el.authError.style.color = ''; el.authError.textContent = authError(e); }
+})
+
+/* ── Deleting the account ────────────────────────────────────────────
+   Two deliberate steps. The first press only reveals the consequence; the
+   second one carries it out. No modal, because a modal over Settings is
+   one stray tap from dismissal and this is the one action that must be
+   read before it is taken. */
+$('delete-open').addEventListener('click', () => {
+  $('delete-error').textContent = '';
+  $('delete-confirm').hidden = false;
+  $('delete-open').hidden = true;
+  $('delete-cancel').focus();
+});
+
+$('delete-cancel').addEventListener('click', () => {
+  $('delete-confirm').hidden = true;
+  $('delete-open').hidden = false;
+  $('delete-open').focus();
+});
+
+$('delete-go').addEventListener('click', async () => {
+  const err = $('delete-error');
+  const btn = $('delete-go');
+  err.style.color = '';
+  err.textContent = '';
+  if (!Sync.user) { err.textContent = 'You are not signed in.'; return; }
+  const was = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+  try {
+    await Sync.deleteAccount();
+    /* The cloud copy is gone. What is on this device is the person's own
+       and stays until they clear it — saying so is the difference between
+       a promise kept and a nasty surprise. */
+    $('delete-confirm').hidden = true;
+    $('delete-open').hidden = false;
+    $('danger-zone').hidden = true;
+    el.syncLine.textContent = 'Account deleted — your notes on this device are untouched';
+    renderAll();
+  } catch (e) {
+    if (e?.code === 'gul/reauth-needed') {
+      err.textContent = 'Your cloud data is deleted. Sign in once more to finish removing the account itself.';
+      renderAll();
+    } else if (e?.code === 'auth/popup-closed-by-user' || e?.code === 'auth/cancelled-popup-request') {
+      err.textContent = 'Confirmation was cancelled — your account has not been removed.';
+    } else {
+      console.error('Gul: account deletion failed', e);
+      err.textContent = 'That did not go through. Please try again.';
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = was;
+  }
 });
 
 /* ── Render & tick ───────────────────────────────────────────────── */
@@ -1189,7 +1394,52 @@ Sync.onRemoteSettings = mergeRemoteSettings;
 /* After the first cloud snapshot, upload anything the cloud doesn't
    have or that's newer locally — first sign-in on a new device pulls
    everything down; first sign-in ever pushes the local record up. */
+/* ── Whose notes are these? ───────────────────────────────────────────
+   The local store is stamped with the uid that owns it. Without that
+   stamp, signing out and signing in as somebody else uploaded the first
+   person's prayer record into the second person's account — their days,
+   their home town, their coordinates. On a shared laptop or a resold
+   phone that is a disclosure of somebody's religious practice, and the
+   app did it silently while reporting success.
+
+   Sign-out deliberately does NOT wipe the device. Someone who signs out
+   should still find their own notes when they come back, exactly as a
+   local-only user would. The stamp is what makes that safe: the data
+   stays, but it is never handed to a different account. */
+const OWNER_KEY = 'gul.owner.v1';
+const storedOwner = () => { try { return localStorage.getItem(OWNER_KEY); } catch { return null; } };
+const setOwner = uid => { try { uid ? localStorage.setItem(OWNER_KEY, uid) : localStorage.removeItem(OWNER_KEY); } catch {} };
+
+function resetLocalToDefaults() {
+  notes = {};
+  settings = { ...DEFAULT_SETTINGS };
+  try {
+    localStorage.removeItem('gul.notes.v2');
+    localStorage.removeItem('gul.settings.v2');
+  } catch {}
+}
+
 Sync.onFirstSync = () => {
+  const uid = Sync.user && Sync.user.uid;
+  if (!uid) return;
+  const owner = storedOwner();
+
+  /* A different person's device state. Do not push a byte of it upward —
+     drop it, take what the cloud has, and let this account start clean. */
+  if (owner && owner !== uid) {
+    resetLocalToDefaults();
+    setOwner(uid);
+    saveNotes();
+    saveSettings();
+    renderAll();
+    return;
+  }
+
+  /* Unstamped means data written before this rule existed, or by a
+     local-only user who has just made their first account. Both are the
+     same person, so the upload is right — claim it and proceed. */
+  setOwner(uid);
+
   Object.entries(notes).forEach(([key, dayN]) => {
     if ((dayN.u || 0) > (Sync.remoteU[key] || 0)) {
       Sync.pushDay(key, dayN.p, dayN.u).catch(() => {});

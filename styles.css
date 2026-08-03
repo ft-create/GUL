@@ -808,10 +808,48 @@ html, body, button, a, .dt-row, .tt-row, .m-cell { touch-action: manipulation; }
 }
 .auth-input:focus { border-color: var(--pn-sun); }
 .auth-error { min-height: 18px; font-size: 12.5px; color: var(--pn-wilt-text); }
+
+/* ── The three steps ───────────────────────────────────────────────────
+   Each step is a column in the same card, so the card does not jump size
+   between them any more than it must. */
+.auth-step { display: flex; flex-direction: column; gap: 10px; }
+.auth-step[hidden] { display: none; }
+
+/* Labels, because a placeholder disappears the moment someone types and
+   then the field has no name at all — for a person or a screen reader. */
+.auth-label {
+  font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--pn-label); text-align: left; margin-top: 2px;
+}
+.auth-input + .auth-field-err { margin-top: -4px; }
+
+/* Field errors sit under the field they are about, not in a banner at the
+   top of the card where you have to work out which one they mean. */
+.auth-field-err {
+  min-height: 0; font-size: 12px; line-height: 1.45;
+  color: var(--pn-wilt-text); text-align: left;
+}
+.auth-field-err:empty { display: none; }
+
+/* The password rule is shown before the first submit, never as a rejection. */
+.auth-hint {
+  font-size: 11.5px; color: var(--pn-muted); text-align: left; margin-top: -4px;
+}
+
+.auth-back { opacity: .75; }
+.auth-back:hover { opacity: 1; }
+
+/* A busy button must still read as a button, not as a disabled dead end. */
+.auth-step .primary:disabled { opacity: .65; cursor: default; }
 .auth-card .primary { max-width: none; margin-top: 0; }
 .auth-link {
   background: none; border: none; color: var(--pn-label); font-size: 12.5px;
-  padding: 6px; transition: color var(--pn-dur-tap) var(--pn-ease);
+  /* 44px of height even though the text is small. These read as quiet links,
+     but Back and Forgot password are load-bearing on a phone — a thumb does
+     not care that they are secondary. */
+  min-height: 44px; padding: 6px 10px;
+  display: flex; align-items: center; justify-content: center;
+  transition: color var(--pn-dur-tap) var(--pn-ease);
 }
 .auth-link:hover { color: var(--pn-sun-pale); }
 
@@ -822,3 +860,43 @@ html, body, button, a, .dt-row, .tt-row, .m-cell { touch-action: manipulation; }
 
 /* the [hidden] attribute must always win over display */
 .auth-overlay[hidden] { display: none; }
+
+/* ── The danger zone ───────────────────────────────────────────────────
+   Set apart from the account card, and the only place in Gul that uses a
+   warm alarm colour. Everywhere else red is banned — a missed prayer is
+   never an error — but erasing an account is genuinely destructive, and
+   the one place the design system should raise its voice. */
+.danger-zone { margin-top: 26px; padding-top: 18px; border-top: 1px solid var(--pn-line); }
+
+.danger-link {
+  background: none; border: none; padding: 12px 0; min-height: 44px;
+  font-size: 12.5px; letter-spacing: .04em; color: var(--pn-wilt-text);
+  opacity: .78; cursor: pointer;
+  transition: opacity var(--pn-dur-tap) var(--pn-ease);
+}
+.danger-link:hover { opacity: 1; text-decoration: underline; }
+
+.danger-confirm {
+  margin-top: 6px; padding: 18px; border-radius: 14px;
+  background: var(--pn-card); border: 1px solid var(--pn-wilt);
+}
+.danger-confirm[hidden] { display: none; }
+
+.danger-lede { margin: 0; font-size: 14.5px; line-height: 1.6; color: var(--pn-ink-2); }
+.danger-note { margin: 10px 0 0; font-size: 12.5px; line-height: 1.55; color: var(--pn-muted); }
+.danger-error { margin-top: 10px; font-size: 12.5px; line-height: 1.5; color: var(--pn-wilt-text); }
+.danger-error:empty { display: none; }
+
+.danger-row { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+.danger-row > * { flex: 1 1 auto; min-height: 48px; }
+
+/* Deliberately not the primary style. Keeping the account is the default
+   action; destroying it should never be the prettiest button on screen. */
+.danger-btn {
+  border-radius: 999px; padding: 13px 20px; font-size: 13.5px; cursor: pointer;
+  color: var(--pn-wilt-text); background: transparent;
+  border: 1px solid var(--pn-wilt);
+  transition: background var(--pn-dur-tap) var(--pn-ease), color var(--pn-dur-tap) var(--pn-ease);
+}
+.danger-btn:hover { background: var(--pn-wilt); color: var(--pn-ink-2); }
+.danger-btn:disabled { opacity: .6; cursor: default; }

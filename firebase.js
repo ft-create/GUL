@@ -63,7 +63,11 @@ export const Sync = {
       /* A Google sign-in that had to fall back to a full-page redirect
          finishes here, on the way back in. Failures are not worth
          surfacing — onAuthStateChanged is the source of truth either way. */
-      auth.getRedirectResult(a).catch(() => {});
+      /* A Google sign-in that fell back to a full-page redirect lands here
+         on the way back in — including, sometimes, a brand-new account. So
+         this is a sign-up site too, not just a sign-in one. */
+      auth.getRedirectResult(a).then(cred => { if (cred) this._welcome(cred); })
+        .catch(() => {});
       auth.onAuthStateChanged(a, u => this._setUser(u));
     } catch (e) {
       console.warn('Gul: cloud unavailable, staying local.', e);
@@ -169,6 +173,40 @@ export const Sync = {
     return this._googleOK;
   },
 
+  /* ── The welcome letter ───────────────────────────────────────────────
+     Fired once, on a genuine first sign-up. The server re-checks everything
+     that matters — it verifies the ID token itself and refuses accounts
+     older than fifteen minutes — so a client that lies achieves nothing
+     except mailing its own owner.
+
+     Never awaited by callers, and silent on failure by design: nobody's
+     account should fail to be created because a letter did not go out. */
+  async _welcome(cred) {
+    try {
+      if (!cred || !cred.user) return;
+      const { authMod } = this._fb;
+      const info = authMod.getAdditionalUserInfo?.(cred);
+      /* Google hands back the existing account on every later sign-in.
+         isNewUser is the only thing separating "just created" from "signed
+         in again" — without it, every returning user gets welcomed. When
+         the SDK gives us nothing, we let the server's account-age check be
+         the guard rather than mailing on a guess. */
+      if (info && info.isNewUser === false) return;
+      const token = await cred.user.getIdToken();
+      const r = await fetch('/api/gul/welcome', {
+        method: 'POST',
+        headers: {
+          authorization: `Bearer ${token}`,
+          'content-type': 'application/json',
+        },
+        body: '{}',
+      });
+      if (!r.ok) console.warn('Gul: welcome mail not sent —', r.status);
+    } catch (e) {
+      console.warn('Gul: welcome mail not sent', e);
+    }
+  },
+
   async signInWithGoogle() {
     if (!await this.googleAvailable()) {
       const e = new Error('This domain is not authorized for Google sign-in.');
@@ -181,7 +219,9 @@ export const Sync = {
        someone into the last person's record. */
     provider.setCustomParameters({ prompt: 'select_account' });
     try {
-      return await authMod.signInWithPopup(a, provider);
+      const cred = await authMod.signInWithPopup(a, provider);
+      this._welcome(cred);          /* not awaited — sign-in must not wait on mail */
+      return cred;
     } catch (e) {
       /* Popups die in in-app browsers and some mobile Safari settings. The
          redirect always works; it just leaves the page and comes back. */
@@ -202,6 +242,7 @@ export const Sync = {
     try { await authMod.sendEmailVerification(cred.user); } catch (e) {
       console.warn('Gul: verification mail did not send', e);
     }
+    this._welcome(cred);            /* not awaited — sign-up must not wait on mail */
     return cred;
   },
 
@@ -220,6 +261,53 @@ export const Sync = {
   async signOut() {
     const { auth: a, authMod } = this._fb;
     return authMod.signOut(a);
+  },
+
+  /* ── Deleting the account ─────────────────────────────────────────────
+     Firestore first, then the auth user — never the other way round. The
+     security rules key on request.auth.uid, so the moment the auth record
+     is gone every one of these deletes would be denied and the person's
+     prayer history would be left orphaned in the database forever, with
+     nobody able to reach it. Data first is the only safe order.
+
+     Firebase requires a recent login before it will delete an account.
+     That is a real protection — it stops someone deleting an account from
+     a session left open on a borrowed laptop — so we honour it rather
+     than working around it, and re-authenticate in place where we can. */
+  async deleteAccount() {
+    if (!this._fb) throw new Error('cloud unavailable');
+    const { auth: a, authMod, db, fs } = this._fb;
+    const u = this.user;
+    if (!u) throw new Error('not signed in');
+
+    const wipe = async () => {
+      /* Every day document, then the profile that owns them. */
+      const days = await fs.getDocs(fs.collection(db, 'gulUsers', u.uid, 'days'));
+      for (const d of days.docs) await fs.deleteDoc(d.ref);
+      await fs.deleteDoc(fs.doc(db, 'gulUsers', u.uid));
+    };
+
+    /* Stop the listeners before deleting, or they fire permission-denied
+       errors against documents that are on their way out. */
+    this._unsub.forEach(f => f());
+    this._unsub = [];
+
+    await wipe();
+
+    try {
+      await authMod.deleteUser(u);
+    } catch (e) {
+      if (e?.code !== 'auth/requires-recent-login') throw e;
+      /* Google can prove it is still them without asking for anything. A
+         password account cannot, so that person is asked to sign in again
+         — their cloud data is already gone either way, which is why the
+         caller reports this as "signed out, finish the job". */
+      const google = (u.providerData || []).some(p => p.providerId === 'google.com');
+      if (!google) { await authMod.signOut(a); const err = new Error('reauth'); err.code = 'gul/reauth-needed'; throw err; }
+      const provider = new authMod.GoogleAuthProvider();
+      await authMod.reauthenticateWithPopup(u, provider);
+      await authMod.deleteUser(u);
+    }
   },
 
   async pushDay(dateKey, prayers, updatedAt) {

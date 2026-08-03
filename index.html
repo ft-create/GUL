@@ -50,7 +50,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap">
-<link rel="stylesheet" href="./styles.css?v=23">
+<link rel="stylesheet" href="./styles.css?v=26">
 <style>.auth-overlay[hidden]{display:none}</style>
 
 <script>
@@ -227,6 +227,25 @@
       </div>
     </div>
 
+    <!-- ── Deleting the account ──────────────────────────────────────
+         Kept out of the account card and behind its own confirmation.
+         Someone reaching for Sign out should never be one mis-tap from
+         erasing their record. Hidden entirely while signed out. -->
+    <div class="danger-zone" id="danger-zone" hidden>
+      <button class="danger-link" id="delete-open" type="button">Delete my account</button>
+
+      <div class="danger-confirm" id="delete-confirm" hidden>
+        <p class="danger-lede">This erases your account and every prayer you have noted, on
+          every device. It cannot be undone.</p>
+        <p class="danger-note" id="delete-note">Your notes on this device stay until you clear them.</p>
+        <div class="danger-error" id="delete-error" role="alert"></div>
+        <div class="danger-row">
+          <button class="outline-btn" id="delete-cancel" type="button">Keep my account</button>
+          <button class="danger-btn" id="delete-go" type="button">Delete permanently</button>
+        </div>
+      </div>
+    </div>
+
     <h3>Place</h3>
     <div class="place-card">
       <div class="place-name" id="place-name">—</div>
@@ -312,16 +331,61 @@
       <span>Continue with Google</span>
     </button>
     <div class="auth-or"><span>or use an email</span></div>
-    <input class="auth-input" id="auth-email" type="email" autocomplete="email" placeholder="Email">
-    <input class="auth-input" id="auth-pass" type="password" autocomplete="current-password" placeholder="Password (6+ characters)">
-    <div class="auth-error" id="auth-error"></div>
-    <button class="primary" id="auth-signin" type="button">Sign in</button>
-    <button class="outline-btn wide" id="auth-signup" type="button">Create an account</button>
-    <button class="auth-link" id="auth-reset" type="button">Forgot password?</button>
+
+    <!-- ── Step 1: the door ──────────────────────────────────────────
+         Two named choices, not two submit buttons on one form. There is
+         deliberately no email field here: an input you cannot yet act on
+         is noise, and it is what let someone submit an empty form and
+         meet a Firebase error string. -->
+    <div class="auth-step" id="auth-step-door">
+      <button class="primary" id="auth-go-signin" type="button">Sign in</button>
+      <button class="outline-btn wide" id="auth-go-signup" type="button">Create an account</button>
+    </div>
+
+    <!-- ── Step 2a: sign in ─────────────────────────────────────────── -->
+    <div class="auth-step" id="auth-step-signin" hidden>
+      <label class="auth-label" for="auth-email">Email</label>
+      <input class="auth-input" id="auth-email" type="email" autocomplete="email"
+             aria-describedby="auth-email-err" placeholder="you@example.com">
+      <div class="auth-field-err" id="auth-email-err" role="alert"></div>
+
+      <label class="auth-label" for="auth-pass">Password</label>
+      <input class="auth-input" id="auth-pass" type="password" autocomplete="current-password"
+             aria-describedby="auth-pass-err" placeholder="Your password">
+      <div class="auth-field-err" id="auth-pass-err" role="alert"></div>
+
+      <div class="auth-error" id="auth-error" role="status" aria-live="polite"></div>
+      <button class="primary" id="auth-signin" type="button">Sign in</button>
+      <button class="auth-link" id="auth-reset" type="button">Forgot password?</button>
+      <button class="auth-link auth-back" id="auth-back-1" type="button">← Back</button>
+    </div>
+
+    <!-- ── Step 2b: create an account ────────────────────────────────
+         autocomplete="new-password" is not a detail. Without it the
+         browser offers a saved credential and its overlay can sit over
+         the email field, which is exactly how an empty address got
+         submitted. -->
+    <div class="auth-step" id="auth-step-signup" hidden>
+      <label class="auth-label" for="auth-email2">Email</label>
+      <input class="auth-input" id="auth-email2" type="email" autocomplete="email"
+             aria-describedby="auth-email2-err" placeholder="you@example.com">
+      <div class="auth-field-err" id="auth-email2-err" role="alert"></div>
+
+      <label class="auth-label" for="auth-pass2">Password</label>
+      <input class="auth-input" id="auth-pass2" type="password" autocomplete="new-password"
+             aria-describedby="auth-pass2-hint auth-pass2-err" placeholder="Choose a password">
+      <div class="auth-hint" id="auth-pass2-hint">At least 6 characters.</div>
+      <div class="auth-field-err" id="auth-pass2-err" role="alert"></div>
+
+      <div class="auth-error" id="auth-error2" role="status" aria-live="polite"></div>
+      <button class="primary" id="auth-signup" type="button">Create account</button>
+      <button class="auth-link auth-back" id="auth-back-2" type="button">← Back</button>
+    </div>
+
     <button class="auth-link" id="auth-close" type="button">Not now — stay local</button>
   </div>
 </div>
 
-<script type="module" src="./app.js?v=23"></script>
+<script type="module" src="./app.js?v=26"></script>
 </body>
 </html>
