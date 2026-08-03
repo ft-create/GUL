@@ -522,6 +522,14 @@ html, body, button, a, .dt-row, .tt-row, .m-cell { touch-action: manipulation; }
   border: 1px solid var(--pn-line-strong); color: var(--pn-sun);
 }
 .inst-ok { width: 100%; margin-top: 22px; }
+/* The copy-link action shown only inside in-app browsers, where installing
+   is impossible and leaving is the instruction. */
+.inst-copy {
+  display: block; width: 100%; margin-top: 14px; min-height: 46px;
+  border-radius: 999px; border: 1px solid var(--pn-line-strong);
+  background: transparent; color: var(--pn-ink); font-size: 14px;
+  font-family: inherit; cursor: pointer;
+}
 .sr-only {
   position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;

@@ -40,20 +40,48 @@ function isIOSSafari() {
   return !/CriOS|FxiOS|EdgiOS|OPiOS|Instagram|FBAN|FBAV|Line\//.test(ua);
 }
 
-/* ── Dismissal memory ─────────────────────────────────────────────── */
-
-/* Safari on a Mac. It can install (File > Add to Dock, since Sonoma) but
+/* Safari on a Mac. It can install — File → Add to Dock, since Sonoma — but
    like every other Safari it never fires beforeinstallprompt, so JavaScript
    cannot start the flow. Without this branch the card hid itself on macOS
-   and the app looked as though it could not be installed, which is untrue.
-   Detection is by exclusion: every Chromium browser on macOS also carries
-   "Safari" in its user-agent string. */
+   and the app looked as though it simply could not be installed, which is
+   not true. Detection is by exclusion: every Chromium browser on macOS also
+   carries "Safari" in the user-agent string. */
 function isMacSafari() {
   if (isIOS()) return false;
   if (navigator.platform !== 'MacIntel' && !/Mac OS X/.test(navigator.userAgent)) return false;
   const ua = navigator.userAgent;
   return /Safari/.test(ua) && !/Chrome|Chromium|Edg|OPR|Brave/.test(ua);
 }
+
+/* Android. Chromium browsers there usually offer beforeinstallprompt, but
+   not always — Firefox never, WebViews never, and Chrome itself withholds
+   it until its own heuristics are satisfied. The card must not vanish in
+   those gaps: Android can always install from the browser menu, so the
+   honest fallback is instructions, not silence. */
+function isAndroid() {
+  return /Android/i.test(navigator.userAgent);
+}
+
+/* Samsung Internet calls the action "Add page to" / "Add to Home screen",
+   not "Install app". Naming the wrong menu item costs the person a minute
+   of hunting, so it gets its own words. */
+function isSamsungInternet() {
+  return /SamsungBrowser/i.test(navigator.userAgent);
+}
+
+/* In-app browsers — the WebViews inside Gmail, Instagram, Facebook,
+   WhatsApp, Messages, Google Search and friends. None of them can install
+   anything, and a button that pretends otherwise is a lie. The `; wv`
+   token is Android's own WebView marker; the rest are the apps that ship
+   their own. Detection cannot be exhaustive, so anything it misses simply
+   gets the ordinary menu instructions instead. */
+function isInAppBrowser() {
+  const ua = navigator.userAgent;
+  return /(; wv\)|\bwv\b)/.test(ua)
+    || /Instagram|FBAN|FBAV|FB_IAB|Line\/|Twitter|TikTok|Snapchat|GSA\/|Gmail|WhatsApp|Messenger/i.test(ua);
+}
+
+/* ── Dismissal memory ─────────────────────────────────────────────── */
 
 const DISMISS_KEY = 'gul.install.dismissed';
 
@@ -94,7 +122,13 @@ export function initInstall(cfg) {
   const ios = isIOS();
   const iosSafari = isIOSSafari();
   const macSafari = isMacSafari();
-  const manualOnly = ios || macSafari;
+  const android = !ios && isAndroid();
+  const inApp = android && isInAppBrowser();
+  /* Platforms that can install but cannot always be asked programmatically.
+     iOS and macOS Safari never fire the prompt; Android sometimes does, and
+     when it does the native path below is preferred — the sheet is only the
+     fallback for the gaps. */
+  const manualOnly = ios || macSafari || android;
 
   /* On Android and desktop the button is only honest if the browser has
      actually offered us a prompt. Until then there is nothing to trigger,
@@ -121,9 +155,9 @@ export function initInstall(cfg) {
   const btn  = mount.querySelector('.inst-btn');
 
   function refresh() {
-    /* Three reasons to show the card, and one to hide it:
-       iOS can always be instructed; other browsers only once they have
-       given us a prompt to fire. */
+    /* Show the card wherever installing is actually possible. iOS and macOS
+       Safari can always be instructed; every other browser only once it has
+       handed us a prompt to fire. */
     const show = manualOnly || haveNativePrompt();
     mount.hidden = !show;
     if (show) onEvent('install_prompt_viewed');
@@ -149,7 +183,9 @@ export function initInstall(cfg) {
      needs the same behaviour without a click. */
   async function request() {
     onEvent('install_button_clicked');
-    if (manualOnly) { openSheet(); return; }
+    /* Native prompt when the browser has offered one — that is the real
+       install and always preferred. Instructions only when it hasn't. */
+    if (!haveNativePrompt() && manualOnly) { openSheet(); return; }
 
     const evt = window.__gulInstallEvent;
     if (!evt) return;                     /* nothing to fire; stay silent */
@@ -185,29 +221,75 @@ export function initInstall(cfg) {
         `<img class="inst-sheet-icon" src="${appIcon}" width="60" height="60" alt="">` +
         `<h2 class="inst-h" id="inst-h">Add ${appName} to your ${macSafari ? 'Dock' : 'Home Screen'}</h2>` +
         '<p class="inst-lede">Faster to open, and it runs full screen with no browser bar.</p>' +
-        (manualOnly && !iosSafari && !macSafari ?
+        (ios && !iosSafari ?
           '<p class="inst-warn">You are not in Safari. Adding to the Home Screen only ' +
           'works from Safari on iPhone and iPad — open this page there first.</p>' : '') +
+        (inApp ?
+          /* An app's built-in browser. It cannot install anything, and no
+             set of steps changes that — the only honest instruction is the
+             way out. No numbered steps, no dead install button. */
+          '<p class="inst-warn">You are in an app&rsquo;s built-in browser, which ' +
+          'cannot install apps. Open this link in Chrome or your usual browser, ' +
+          'then install from there.</p>' +
+          '<button class="inst-copy" type="button">Copy link</button>'
+        : '') +
+        (inApp ? '' :
         '<ol class="inst-steps">' +
-          (macSafari ?
-            '<li><span class="inst-num">1</span><span>Open the <b>File</b> menu in the menu bar at the top of the screen.</span></li>' +
+          (android ?
+            /* Android outside a native prompt. The menu item's name varies
+               by browser, so say so rather than guessing wrong. */
+            '<li><span class="inst-num">1</span><span>Open your browser&rsquo;s menu ' +
+              '<b>&#8942;</b> at the top of the screen.</span></li>' +
+            (isSamsungInternet() ?
+              '<li><span class="inst-num">2</span><span>Choose <b>Add page to</b>, then <b>Home screen</b>.</span></li>'
+            :
+              '<li><span class="inst-num">2</span><span>Choose <b>Install app</b> or <b>Add to Home screen</b> &mdash; the wording varies by browser.</span></li>'
+            ) +
+            '<li><span class="inst-num">3</span><span>Confirm. The flower appears on your Home Screen.</span></li>'
+          : macSafari ?
+            /* macOS Safari. Add to Dock lives in the File menu and in the
+               Share menu; the File menu is the one that is always visible,
+               so that is the one we name. */
+            '<li><span class="inst-num">1</span><span>Open the <b>File</b> menu in the ' +
+              'menu bar at the top of the screen.</span></li>' +
             '<li><span class="inst-num">2</span><span>Choose <b>Add to Dock</b>.</span></li>' +
-            '<li><span class="inst-num">3</span><span>Click <b>Add</b>. The flower appears in your Dock.</span></li>' : (
-          '<li><span class="inst-num">1</span><span>Tap the <b>Share</b> button ' +
-            '<span class="inst-share" aria-hidden="true">' +
-              '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
-              '<path d="M12 15V3"></path><path d="M8 7l4-4 4 4"></path>' +
-              '<path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"></path></svg>' +
-            '</span> at the bottom of Safari.</span></li>' +
-          '<li><span class="inst-num">2</span><span>Scroll and choose <b>Add to Home Screen</b>.</span></li>' +
-          '<li><span class="inst-num">3</span><span>Tap <b>Add</b>. The flower appears on your Home Screen.</span></li>')) +
-        '</ol>' +
+            '<li><span class="inst-num">3</span><span>Click <b>Add</b>. The flower appears ' +
+              'in your Dock.</span></li>'
+          :
+            '<li><span class="inst-num">1</span><span>Tap the <b>Share</b> button ' +
+              '<span class="inst-share" aria-hidden="true">' +
+                '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' +
+                '<path d="M12 15V3"></path><path d="M8 7l4-4 4 4"></path>' +
+                '<path d="M4 13v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"></path></svg>' +
+              '</span> at the bottom of Safari.</span></li>' +
+            '<li><span class="inst-num">2</span><span>Scroll and choose <b>Add to Home Screen</b>.</span></li>' +
+            '<li><span class="inst-num">3</span><span>Tap <b>Add</b>. The flower appears on your Home Screen.</span></li>'
+          ) +
+        '</ol>') +
         '<button class="inst-ok primary" type="button">Got it</button>' +
       '</div>';
     document.body.appendChild(el);
 
     el.querySelector('.inst-x').addEventListener('click', closeSheet);
     el.querySelector('.inst-ok').addEventListener('click', closeSheet);
+    const copyBtn = el.querySelector('.inst-copy');
+    if (copyBtn) copyBtn.addEventListener('click', async () => {
+      /* Async clipboard first; execCommand as the fallback, because several
+         in-app browsers still gate the modern API. If both fail, say so —
+         a button that claims success it did not have is worse than none. */
+      const link = 'https://gul.fareedtareen.com/';
+      let ok = false;
+      try { await navigator.clipboard.writeText(link); ok = true; } catch {}
+      if (!ok) {
+        try {
+          const t = document.createElement('textarea');
+          t.value = link; document.body.appendChild(t); t.select();
+          ok = document.execCommand('copy'); t.remove();
+        } catch {}
+      }
+      copyBtn.textContent = ok ? 'Link copied' : 'Could not copy — long-press the address bar';
+      announce(ok ? 'Link copied.' : 'Copy failed.');
+    });
     /* Clicking the scrim closes; clicking the sheet must not. */
     el.addEventListener('click', e => { if (e.target === el) closeSheet(); });
     return el;

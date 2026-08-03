@@ -4,10 +4,10 @@
 
 import {
   solarDay, altitudeAt, shadowRatioAt, windows, fmtMinutes, METHODS,
-} from './solar.js?v=28';
-import { QUICK, searchCities } from './cities.js?v=28';
-import { Sync } from './firebase.js?v=28';
-import { initInstall } from './install.js?v=28';
+} from './solar.js?v=29';
+import { QUICK, searchCities } from './cities.js?v=29';
+import { Sync } from './firebase.js?v=29';
+import { initInstall } from './install.js?v=29';
 /* ── Why every internal import carries ?v= ───────────────────────────────
    index.html versions styles.css and app.js, but a module graph is invisible
    to it: app.js pulls solar.js, cities.js and firebase.js by bare path, so a
