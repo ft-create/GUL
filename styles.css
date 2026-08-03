@@ -257,6 +257,9 @@ html, body, button, a, .dt-row, .tt-row, .m-cell { touch-action: manipulation; }
 .dt-row.now .dt-time { color: var(--pn-sun); }
 
 .quiet { margin: 4px 0 0; max-width: 44ch; font-size: 13.5px; line-height: 1.55; color: var(--pn-muted); }
+/* The legend under the History calendar. Centred beneath the grid so it
+   reads as a caption for the whole month, not a stray footnote. */
+.grid-note { margin: 18px auto 0; text-align: center; }
 .notice {
   margin: 4px 0 0; max-width: 46ch; font-size: 13px; line-height: 1.55;
   color: var(--pn-wilt-text);
