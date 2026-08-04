@@ -50,7 +50,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap">
-<link rel="stylesheet" href="./styles.css?v=30">
+<link rel="stylesheet" href="./styles.css?v=31">
 <style>.auth-overlay[hidden]{display:none}</style>
 
 <script>
@@ -126,6 +126,7 @@
       <p class="sync-line" id="sync-line"></p>
       <p class="notice" id="polar-note" hidden>This place is in polar day or night today, so times are shown for the nearest workable latitude — not the literal sky above you.</p>
       <p class="notice" id="adjusted-note" hidden>Twilight here is extreme today; Fajr and Isha follow the high-latitude rule chosen in Settings.</p>
+      <p class="notice" id="tz-note" hidden></p>
     </div>
 
     <div class="today-aperture">
@@ -205,7 +206,7 @@
       </div>
     </div>
     <div class="month-grid" id="month-grid"></div>
-    <p class="quiet grid-note">Each flower is a day, and each open petal a prayer you noted. Tap any day to change it.</p>
+    <p class="quiet">A day with four petals is a day you noted four prayers. Tap any day to correct it.</p>
   </section>
 
   <!-- ── Settings ──────────────────────────────────────────────────── -->
@@ -386,6 +387,6 @@
   </div>
 </div>
 
-<script type="module" src="./app.js?v=30"></script>
+<script type="module" src="./app.js?v=31"></script>
 </body>
 </html>

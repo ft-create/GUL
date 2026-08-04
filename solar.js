@@ -32,8 +32,8 @@ export const METHODS = {
   EGYPT:      { name: 'Egyptian General Authority', fajr: 19.5, isha: 17.5 },
   MAKKAH:     { name: 'Umm al-Qura, Makkah',        fajr: 18.5, ishaInterval: 90 },
   KARACHI:    { name: 'University of Karachi',      fajr: 18,   isha: 18 },
-  TEHRAN:     { name: 'Univ. of Tehran',            fajr: 17.7, isha: 14 },
-  JAFARI:     { name: 'Shia Ithna Ashari',          fajr: 16,   isha: 14 },
+  TEHRAN:     { name: 'Univ. of Tehran',            fajr: 17.7, isha: 14,   maghribAngle: 4.5 },
+  JAFARI:     { name: 'Shia Ithna Ashari',          fajr: 16,   isha: 14,   maghribAngle: 4 },
   TURKEY:     { name: 'Diyanet, Turkey',            fajr: 18,   isha: 17 },
   DUBAI:      { name: 'Dubai',                      fajr: 18.2, isha: 18.2 },
   SINGAPORE:  { name: 'Singapore',                  fajr: 20,   isha: 18 },
@@ -136,6 +136,15 @@ export function solarDay(date, latitude, longitude, tzOffsetMin, opts = {}) {
   const sunrise = at(HORIZON, true);
   const sunset  = at(HORIZON, false);
 
+  /* Maghrib is sunset for most conventions, but the Tehran and Jafari
+     definitions place it when the sun is a few degrees below the horizon
+     (ihtiyat - a precaution against horizon uncertainty). Falling back to
+     plain sunset for those methods would silently misstate the convention
+     the person chose. */
+  const maghrib = method.maghribAngle != null
+    ? (at(-method.maghribAngle, false) ?? sunset)
+    : sunset;
+
   // Asr: altitude where a gnomon's shadow is asrFactor × its height
   const asrAlt = Math.atan(1 / (asrFactor + Math.tan(Math.abs(latitude - decl) * RAD))) * DEG;
   let asr = at(asrAlt, false);
@@ -148,15 +157,19 @@ export function solarDay(date, latitude, longitude, tzOffsetMin, opts = {}) {
   // Peak altitude, for the arc's amplitude
   const peakAlt = 90 - Math.abs(latitude - decl);
 
-  /* ── High-latitude fallbacks ──────────────────────────────────────── */
+  /* ── High-latitude rule ───────────────────────────────────────────────
+     Applied as a BOUND, not only a fallback. The old code consulted the
+     rule only when the sun never reached the angle at all (fajr === null),
+     so through a London summer the Settings choice did nothing while raw
+     18-degree Fajr drifted to half past two in the morning. The standard
+     semantics — what adhan and the widely used timetables implement — cap
+     Fajr at a chosen portion of the night before sunrise, and Isha at the
+     same portion after sunset, whether or not an astronomical solution
+     exists. Verified against adhan for London, 4 Aug 2026: seventhOfNight
+     clamps 02:44 to 04:13, twilightAngle to 02:51, middleOfNight leaves it.
+     At normal latitudes the limits are far outside the raw times and this
+     block changes nothing. */
   let adjusted = null;
-  /* Applied as a BOUND, not only a fallback. Standard semantics (adhan and
-     the widely used timetables) cap Fajr at a portion of night before
-     sunrise and Isha after sunset, whether or not an astronomical solution
-     exists. Verified against adhan, London 4 Aug 2026: seventhOfNight
-     clamps 02:44 to 04:13, twilightAngle to 02:51, middleOfNight leaves
-     it. At normal latitudes the limits sit far outside the raw times and
-     this block changes nothing. */
   if (sunrise != null && sunset != null) {
     const night = 1440 - (sunset - sunrise);
     let fajrPortion, ishaPortion;
@@ -182,7 +195,7 @@ export function solarDay(date, latitude, longitude, tzOffsetMin, opts = {}) {
   }
 
   return {
-    fajr, sunrise, dhuhr: transit + dhuhrOffset, asr, maghrib: sunset, isha,
+    fajr, sunrise, dhuhr: transit + dhuhrOffset, asr, maghrib, isha,
     sunset, transit, decl, peakAlt, latitude, longitude, tz,
     asrFactor, method: method.name, adjusted, polar: false,
   };

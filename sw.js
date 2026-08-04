@@ -3,10 +3,10 @@
 /* Bump this on every deploy that changes a shell asset. The install
    handler precaches SHELL under this name, so a stale name means a
    returning visitor keeps the old app even after a successful deploy. */
-const V = '30';
+const V = '31';
 const CACHE = `gul-web-v${V}`;
 /* The version has to be ON the precached names. The page asks for
-   ./app.js?v=30; Cache API matching is query-sensitive and ignoreSearch is
+   ./app.js?v=31; Cache API matching is query-sensitive and ignoreSearch is
    not set, so a bare './app.js' in here never matches what the page
    requests. The old list therefore downloaded the whole app twice on a
    first visit and — worse — a first-time installer who went offline before

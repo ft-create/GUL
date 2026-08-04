@@ -4,11 +4,11 @@
 
 import {
   solarDay, altitudeAt, shadowRatioAt, windows, fmtMinutes, METHODS,
-} from './solar.js?v=30';
-import { QUICK, searchCities } from './cities.js?v=30';
-import { Sync } from './firebase.js?v=30';
-import { initInstall } from './install.js?v=30';
-import tzFromCoords from './tzdata.js?v=30';
+} from './solar.js?v=31';
+import { QUICK, searchCities } from './cities.js?v=31';
+import { Sync } from './firebase.js?v=31';
+import { initInstall } from './install.js?v=31';
+import tzFromCoords from './tzdata.js?v=31';
 /* ── Why every internal import carries ?v= ───────────────────────────────
    index.html versions styles.css and app.js, but a module graph is invisible
    to it: app.js pulls solar.js, cities.js and firebase.js by bare path, so a
@@ -148,6 +148,19 @@ function tzOffsetMin(date, tz) {
   const asUTC = Date.UTC(p.y, p.m - 1, p.d, Math.floor(p.min / 60), Math.floor(p.min % 60), Math.round((p.min % 1) * 60));
   return Math.round((asUTC - date.getTime()) / 60000);
 }
+/* Ramadan, for Umm al-Qura's +30-minute Isha interval. Detected from the
+   Umm al-Qura civil calendar itself via Intl - the same tables Saudi
+   Arabia uses - evaluated at UTC noon of the civil date so no device
+   timezone can shift the answer. Local moon-sighting authorities can
+   differ by a day; the timetable already says conventions vary. */
+function isRamadan(y, m, d) {
+  try {
+    const mo = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', { month: 'numeric', timeZone: 'UTC' })
+      .format(new Date(Date.UTC(y, m - 1, d, 12)));
+    return parseInt(mo, 10) === 9;
+  } catch { return false; }
+}
+
 const keyOf = (y, m, d) => `${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
 function parseKey(k) { const [y, m, d] = k.split('-').map(Number); return { y, m, d }; }
 function shiftKey(k, days) {
@@ -160,7 +173,9 @@ function shiftKey(k, days) {
 let dayCache = {};
 function dayFor(key) {
   const loc = place();
-  const ck = `${key}|${loc.lat},${loc.lon}|${settings.method}|${settings.asrFactor}|${settings.highLatRule}`;
+  const { y: ry, m: rm, d: rd } = parseKey(key);
+  const ramadan = settings.method === 'MAKKAH' && isRamadan(ry, rm, rd);
+  const ck = `${key}|${loc.lat},${loc.lon}|${settings.method}|${settings.asrFactor}|${settings.highLatRule}|${ramadan ? 'R' : ''}`;
   if (dayCache.key !== ck) {
     const { y, m, d } = parseKey(key);
     const date = new Date(y, m - 1, d, 12);
@@ -169,6 +184,7 @@ function dayFor(key) {
       key: ck,
       day: solarDay(date, loc.lat, loc.lon, tz, {
         method: settings.method, asrFactor: settings.asrFactor, highLatRule: settings.highLatRule,
+        ramadan,
       }),
     };
   }
@@ -275,7 +291,7 @@ const el = {
   nowName: $('now-name'), nowTime: $('now-time'), nextLabel: $('next-label'),
   qiblaLine: $('qibla-line'), syncLine: $('sync-line'),
   markNow: $('mark-now'), dayTable: $('day-table'),
-  polarNote: $('polar-note'), adjustedNote: $('adjusted-note'),
+  polarNote: $('polar-note'), adjustedNote: $('adjusted-note'), tzNote: $('tz-note'),
   ap: { sky: $('ap-sky'), shaft: $('ap-shaft'), sun: $('ap-sun'), ground: $('ap-ground'),
         shadow: $('ap-shadow'), gnomon: $('ap-gnomon'), frame: document.querySelector('.aperture-frame'),
         phase: $('ap-phase'), meta: $('ap-meta'), scrub: $('ap-scrub') },
@@ -423,6 +439,19 @@ function drawFlower() {
 
   el.polarNote.hidden = !day.polar;
   el.adjustedNote.hidden = !(day.adjusted && day.adjusted !== 'nearestLatitude');
+
+  /* Device-timezone mismatch disclosure. Expected when viewing another
+     city; vital when travelling with a phone whose clock has not caught
+     up. Neither zone is changed silently - the note just says which one
+     the timetable is using. */
+  try {
+    const loc = place();
+    const deviceTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const show = loc.tz && deviceTz && loc.tz !== deviceTz;
+    el.tzNote.hidden = !show;
+    if (show) el.tzNote.textContent =
+      `These times use ${loc.tz.replace(/_/g, ' ')}. This device is set to ${deviceTz.replace(/_/g, ' ')} - expected if you are viewing another place.`;
+  } catch { el.tzNote.hidden = true; }
 
   return { t, day, noted };
 }
@@ -1037,24 +1066,77 @@ function drawSettings() {
   });
 }
 
-/* Place search */
-el.placeSearch.addEventListener('input', () => {
-  const hits = searchCities(el.placeSearch.value);
+/* ── Place search - the built-in list instantly, the world on a pause ──
+   The 92-city list renders on every keystroke and works offline. After a
+   350 ms pause, the Open-Meteo geocoder (no key, no account, coordinates
+   never sent - only the typed name) fills in every town on Earth, with
+   region and country shown so the three Londons are distinguishable. Each
+   result carries its own IANA timezone; we validate it against Intl and
+   fall back to the coordinate index if the geocoder's zone is unknown to
+   this browser. Offline or failed lookups degrade silently to the local
+   list - never an error in the person's face. */
+let geoSeq = 0, geoTimer = null, geoAbort = null;
+
+function drawHits(localHits, remoteHits) {
   el.searchResults.innerHTML = '';
-  if (!hits.length) { el.searchResults.classList.remove('show'); return; }
-  hits.forEach(c => {
+  const seen = new Set();
+  const add = (c, sub) => {
+    const k = `${c.lat.toFixed(1)},${c.lon.toFixed(1)}`;
+    if (seen.has(k)) return;
+    seen.add(k);
     const b = document.createElement('button');
     b.type = 'button';
     b.className = 'search-hit';
-    b.innerHTML = `<span>${c.name}</span><span class="tz">${c.tz.replace('_', ' ')}</span>`;
+    const name = document.createElement('span'); name.textContent = c.name;
+    const tz = document.createElement('span'); tz.className = 'tz';
+    tz.textContent = sub || (c.tz || '').replace(/_/g, ' ');
+    b.append(name, tz);
     b.addEventListener('click', () => {
       el.placeSearch.value = '';
       el.searchResults.classList.remove('show');
       setPlace(c);
     });
     el.searchResults.appendChild(b);
-  });
-  el.searchResults.classList.add('show');
+  };
+  localHits.forEach(c => add(c));
+  remoteHits.forEach(r => add(r.place, r.sub));
+  el.searchResults.classList.toggle('show', seen.size > 0);
+}
+
+async function searchWorld(q, seq) {
+  if (geoAbort) geoAbort.abort();
+  geoAbort = new AbortController();
+  try {
+    const r = await fetch(
+      'https://geocoding-api.open-meteo.com/v1/search?count=8&language=en&format=json&name='
+        + encodeURIComponent(q),
+      { signal: geoAbort.signal });
+    if (!r.ok || seq !== geoSeq) return;
+    const data = await r.json();
+    const results = (data.results || []).map(g => {
+      let tz = null, tzSource = 'geocoder';
+      try { new Intl.DateTimeFormat(undefined, { timeZone: g.timezone }); tz = g.timezone; }
+      catch {
+        try {
+          const guess = tzFromCoords(g.latitude, g.longitude);
+          new Intl.DateTimeFormat(undefined, { timeZone: guess });
+          tz = guess; tzSource = 'coordinates';
+        } catch {}
+      }
+      if (!tz) return null;
+      const sub = [g.admin1, g.country].filter(Boolean).join(', ');
+      return { place: { name: g.name, lat: g.latitude, lon: g.longitude, tz, tzSource }, sub };
+    }).filter(Boolean);
+    if (seq === geoSeq) drawHits(searchCities(el.placeSearch.value), results);
+  } catch {} /* offline, aborted, or rate-limited: the local list stands */
+}
+
+el.placeSearch.addEventListener('input', () => {
+  const q = el.placeSearch.value.trim();
+  const seq = ++geoSeq;
+  clearTimeout(geoTimer);
+  drawHits(q ? searchCities(q) : [], []);
+  if (q.length >= 2) geoTimer = setTimeout(() => searchWorld(q, seq), 350);
 });
 document.addEventListener('click', e => {
   if (!e.target.closest('.search-wrap')) el.searchResults.classList.remove('show');
@@ -1085,9 +1167,9 @@ el.geoBtn.addEventListener('click', () => {
     });
     const deviceTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     el.geoBtn.textContent = tz
-      ? (tz === deviceTz ? 'Use my precise location' : `Located - times use ${tz}`)
-      : 'Located - timezone from this device clock';
-  }, () => { el.geoBtn.textContent = 'Could not locate - search a city'; },
+      ? (tz === deviceTz ? 'Use my precise location' : `Located — times use ${tz}`)
+      : 'Located — timezone from this device\u2019s clock';
+  }, () => { el.geoBtn.textContent = 'Could not locate — search a city'; },
      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 });
 el.placeBtn.addEventListener('click', () => {
