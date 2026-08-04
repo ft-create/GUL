@@ -3,10 +3,10 @@
 /* Bump this on every deploy that changes a shell asset. The install
    handler precaches SHELL under this name, so a stale name means a
    returning visitor keeps the old app even after a successful deploy. */
-const V = '29';
+const V = '30';
 const CACHE = `gul-web-v${V}`;
 /* The version has to be ON the precached names. The page asks for
-   ./app.js?v=29; Cache API matching is query-sensitive and ignoreSearch is
+   ./app.js?v=30; Cache API matching is query-sensitive and ignoreSearch is
    not set, so a bare './app.js' in here never matches what the page
    requests. The old list therefore downloaded the whole app twice on a
    first visit and — worse — a first-time installer who went offline before
@@ -17,7 +17,7 @@ const CACHE = `gul-web-v${V}`;
 const SHELL = [
   './', './index.html', `./styles.css?v=${V}`, `./app.js?v=${V}`,
   `./firebase.js?v=${V}`, `./cities.js?v=${V}`, `./solar.js?v=${V}`,
-  `./install.js?v=${V}`, './favicon.svg', './gul-mark.svg',
+  `./install.js?v=${V}`, `./tzdata.js?v=${V}`, './favicon.svg', './gul-mark.svg',
   './app-icon.svg', './maskable-icon.svg', './manifest.webmanifest',
   /* The Home Screen icons. Precached so the install card and the sheet
      draw instantly and still draw offline. */

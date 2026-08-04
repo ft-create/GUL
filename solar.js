@@ -150,7 +150,14 @@ export function solarDay(date, latitude, longitude, tzOffsetMin, opts = {}) {
 
   /* ── High-latitude fallbacks ──────────────────────────────────────── */
   let adjusted = null;
-  if ((fajr === null || isha === null) && sunrise != null && sunset != null) {
+  /* Applied as a BOUND, not only a fallback. Standard semantics (adhan and
+     the widely used timetables) cap Fajr at a portion of night before
+     sunrise and Isha after sunset, whether or not an astronomical solution
+     exists. Verified against adhan, London 4 Aug 2026: seventhOfNight
+     clamps 02:44 to 04:13, twilightAngle to 02:51, middleOfNight leaves
+     it. At normal latitudes the limits sit far outside the raw times and
+     this block changes nothing. */
+  if (sunrise != null && sunset != null) {
     const night = 1440 - (sunset - sunrise);
     let fajrPortion, ishaPortion;
     if (highLatRule === 'middleOfNight') { fajrPortion = ishaPortion = night / 2; }
@@ -158,8 +165,12 @@ export function solarDay(date, latitude, longitude, tzOffsetMin, opts = {}) {
     else if (highLatRule === 'twilightAngle') { fajrPortion = night / (60 / method.fajr); ishaPortion = night / (60 / (method.isha ?? 17)); }
     else { fajrPortion = ishaPortion = night / 2; }
 
-    if (fajr === null) { fajr = sunrise - fajrPortion; adjusted = highLatRule; }
-    if (isha === null) { isha = sunset + ishaPortion; adjusted = highLatRule; }
+    const fajrLimit = sunrise - fajrPortion;
+    const ishaLimit = sunset + ishaPortion;
+    if (fajr === null || fajr < fajrLimit) { fajr = fajrLimit; adjusted = highLatRule; }
+    /* Interval-based Isha (e.g. Umm al-Qura's 90 minutes) is already a
+       bounded convention; only angle-based Isha needs the cap. */
+    if (isha === null || (method.ishaInterval == null && isha > ishaLimit)) { isha = ishaLimit; adjusted = highLatRule; }
   }
 
   const polar = sunrise === null || sunset === null;

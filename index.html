@@ -50,7 +50,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Sans:opsz,wght@9..40,300;9..40,400;9..40,500&display=swap">
-<link rel="stylesheet" href="./styles.css?v=29">
+<link rel="stylesheet" href="./styles.css?v=30">
 <style>.auth-overlay[hidden]{display:none}</style>
 
 <script>
@@ -125,7 +125,7 @@
       <p class="quiet">Each prayer you note opens a petal. Tap the button above, or any row.</p>
       <p class="sync-line" id="sync-line"></p>
       <p class="notice" id="polar-note" hidden>This place is in polar day or night today, so times are shown for the nearest workable latitude — not the literal sky above you.</p>
-      <p class="notice" id="adjusted-note" hidden>Twilight does not reach the chosen angle here today; Fajr and Isha are estimated by the high-latitude rule in Settings.</p>
+      <p class="notice" id="adjusted-note" hidden>Twilight here is extreme today; Fajr and Isha follow the high-latitude rule chosen in Settings.</p>
     </div>
 
     <div class="today-aperture">
@@ -276,7 +276,7 @@
     </div>
     <p class="quiet" id="asr-note">Standard: Asr begins when a shadow equals its object — Shāfiʿī, Mālikī, Ḥanbalī.</p>
 
-    <div class="field-label">High latitudes — when twilight never comes</div>
+    <div class="field-label">High latitudes — when twilight is extreme or never comes</div>
     <div class="asr-toggle three" id="hl-toggle">
       <button type="button" data-r="middleOfNight">Middle of night</button>
       <button type="button" data-r="seventhOfNight">Seventh of night</button>
@@ -386,6 +386,6 @@
   </div>
 </div>
 
-<script type="module" src="./app.js?v=29"></script>
+<script type="module" src="./app.js?v=30"></script>
 </body>
 </html>

@@ -4,10 +4,11 @@
 
 import {
   solarDay, altitudeAt, shadowRatioAt, windows, fmtMinutes, METHODS,
-} from './solar.js?v=29';
-import { QUICK, searchCities } from './cities.js?v=29';
-import { Sync } from './firebase.js?v=29';
-import { initInstall } from './install.js?v=29';
+} from './solar.js?v=30';
+import { QUICK, searchCities } from './cities.js?v=30';
+import { Sync } from './firebase.js?v=30';
+import { initInstall } from './install.js?v=30';
+import tzFromCoords from './tzdata.js?v=30';
 /* ── Why every internal import carries ?v= ───────────────────────────────
    index.html versions styles.css and app.js, but a module graph is invisible
    to it: app.js pulls solar.js, cities.js and firebase.js by bare path, so a
@@ -1063,14 +1064,31 @@ el.geoBtn.addEventListener('click', () => {
   if (!navigator.geolocation) { el.geoBtn.textContent = 'Location not available'; return; }
   el.geoBtn.textContent = 'Locating…';
   navigator.geolocation.getCurrentPosition(pos => {
+    const lat = pos.coords.latitude;
+    const lon = pos.coords.longitude;
+    /* Resolve the timezone FROM THE COORDINATES, never from the device
+       clock. A traveller whose phone still thinks it is in Toronto, a VPN,
+       or a mis-set laptop would otherwise shift every prayer by whole
+       hours. tzFromCoords is an offline index; the result is validated
+       against Intl before being trusted. If it cannot be validated we keep
+       tz null (device clock) and say so, rather than failing silently. */
+    let tz = null, tzSource = 'device';
+    try {
+      const guess = tzFromCoords(lat, lon);
+      new Intl.DateTimeFormat(undefined, { timeZone: guess }); // throws if unknown
+      tz = guess; tzSource = 'coordinates';
+    } catch {}
     setPlace({
-      name: 'Your location',
-      lat: +pos.coords.latitude.toFixed(4),
-      lon: +pos.coords.longitude.toFixed(4),
-      tz: null, // device's own timezone — exact coordinates, your clock
+      name: 'Your location', lat, lon, tz, tzSource,
+      accuracyM: Math.round(pos.coords.accuracy || 0) || null,
+      tzResolvedAt: Date.now(),
     });
-    el.geoBtn.textContent = 'Use my precise location';
-  }, () => { el.geoBtn.textContent = 'Could not locate — search a city'; }, { timeout: 10000 });
+    const deviceTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    el.geoBtn.textContent = tz
+      ? (tz === deviceTz ? 'Use my precise location' : `Located - times use ${tz}`)
+      : 'Located - timezone from this device clock';
+  }, () => { el.geoBtn.textContent = 'Could not locate - search a city'; },
+     { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
 });
 el.placeBtn.addEventListener('click', () => {
   location.hash = '#settings';
